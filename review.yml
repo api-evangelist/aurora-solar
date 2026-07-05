@@ -1,0 +1,139 @@
+aid: aurora-solar
+name: Aurora Solar
+review:
+  question: Does Aurora Solar expose a documented public WebSocket API?
+  answer: false
+  date: '2026-07-04'
+  reviewer: API Evangelist
+  asyncapiSpecCreated: false
+  asyncapiScopeNote: |
+    No AsyncAPI document was authored. Aurora Solar's public developer surface
+    is a request/response REST API over HTTPS. Its "real-time" event delivery
+    is implemented with outbound webhooks (Aurora POSTs event notifications to a
+    customer-configured HTTPS endpoint), not a server-push streaming transport
+    on Aurora's own API. There is no documented WebSocket (ws/wss) or
+    Server-Sent Events (SSE) channel on Aurora's API to model. Long-running
+    work (AutoDesigner, irradiance analysis, performance simulation, plan sets,
+    utility-bill OCR) uses asynchronous submit-then-poll endpoints plus webhook
+    completion callbacks - still plain HTTP.
+findings:
+  summary: |
+    Aurora Solar does not publish a documented public WebSocket API. The Aurora
+    API (current version v2024.05) is a tenant-scoped REST API. The API host is
+    https://api.aurorasolar.com (production) and https://api-sandbox.aurorasolar.com
+    (sandbox); every resource lives under /tenants/{tenant_id}. Requests are
+    authenticated with an API-key bearer token issued from the tenant's API
+    Tokens screen (Standard keys prefixed sk_, Restricted keys prefixed rk_,
+    with sand_/prod_ denoting the environment) and passed as
+    Authorization: Bearer <token>. The app/token-management UI lives on
+    v2.aurorasolar.com and v2-sandbox.aurorasolar.com, which is distinct from
+    the api. host. Real-time updates are delivered via outbound webhooks, and
+    several design operations are asynchronous (submit a request, then poll or
+    receive a webhook). No realtime, bidirectional, or streaming WebSocket
+    (ws:// or wss://) endpoint is documented anywhere in Aurora's API reference.
+  openSource: |
+    The Aurora API and platform are proprietary/commercial SaaS. There is a
+    public GitHub organization (github.com/aurorasolar), but the core product is
+    not open source. Pricing is not published; plans are quoted through sales
+    (per-user seat licenses across tiers plus a credit-based consumption option).
+  transports:
+    - protocol: REST
+      scheme: https
+      baseURL: https://api.aurorasolar.com
+      documented: true
+      note: Tenant-scoped REST API under /tenants/{tenant_id}. Sandbox host is https://api-sandbox.aurorasolar.com.
+    - protocol: Webhook
+      scheme: https
+      documented: true
+      note: Aurora POSTs event notifications (project/design/async-job lifecycle) to a customer-configured HTTPS endpoint. Server-to-endpoint HTTP, not WebSocket.
+    - protocol: Async Poll
+      scheme: https
+      documented: true
+      note: AutoDesigner, irradiance analysis, performance simulation, plan sets, and utility-bill uploads are submit-then-poll (retrieve *status) operations over HTTPS. Not server push.
+    - protocol: WebSocket
+      scheme: wss
+      documented: false
+      note: No WebSocket endpoint is documented anywhere in Aurora's API reference as of the review date.
+  endpointsConfirmedRest:
+    - GET  https://api.aurorasolar.com/tenants/{tenant_id}/projects
+    - POST https://api.aurorasolar.com/tenants/{tenant_id}/design_requests
+    - POST https://api.aurorasolar.com/tenants/{tenant_id}/webhooks
+  endpointsModeledRest:
+    - POST   https://api.aurorasolar.com/tenants/{tenant_id}/projects
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}
+    - PATCH  https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}
+    - DELETE https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}/ahj
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/design_requests/{design_request_id}
+    - POST   https://api.aurorasolar.com/tenants/{tenant_id}/design_requests/{design_request_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/designs
+    - POST   https://api.aurorasolar.com/tenants/{tenant_id}/designs
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/designs/{design_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/designs/{design_id}/summary
+    - POST   https://api.aurorasolar.com/tenants/{tenant_id}/proposals
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/proposals/{proposal_id}
+    - DELETE https://api.aurorasolar.com/tenants/{tenant_id}/proposals/{proposal_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/proposal_templates
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/designs/{design_id}/web_proposal
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}/consumption_profile
+    - PATCH  https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}/consumption_profile
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/projects/{project_id}/utility_bills
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/users
+    - POST   https://api.aurorasolar.com/tenants/{tenant_id}/users
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/users/{user_id}
+    - PATCH  https://api.aurorasolar.com/tenants/{tenant_id}/users/{user_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/webhooks
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/webhooks/{webhook_id}
+    - PATCH  https://api.aurorasolar.com/tenants/{tenant_id}/webhooks/{webhook_id}
+    - DELETE https://api.aurorasolar.com/tenants/{tenant_id}/webhooks/{webhook_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/financings
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/financings/{financing_id}
+    - POST   https://api.aurorasolar.com/tenants/{tenant_id}/financings/{financing_id}/push
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/agreements
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/agreements/{agreement_id}
+    - GET    https://api.aurorasolar.com/tenants/{tenant_id}/agreements/{agreement_id}/link
+  modeledNote: |
+    Confirmed paths were read directly from Aurora's public reference (List
+    Projects, Create Design Request, Create Webhook), which established the
+    api.aurorasolar.com host and the /tenants/{tenant_id}/<resource>
+    convention. The modeled paths follow that same convention and Aurora's
+    published operation catalog (docs.aurorasolar.com/llms.txt lists operations
+    such as List/Create/Retrieve/Update Project, Create/Accept Design Request,
+    Create/Retrieve Design, Create/Retrieve Proposal, Retrieve/Update
+    Consumption Profile, Retrieve Tenant, List/Create/Update User, CRUD
+    Webhooks, List/Retrieve/Push Financing, and Retrieve Agreement + Agreement
+    Link). Exact path segments for modeled operations should be reconciled
+    against the live reference, which is partially gated behind login.
+sources:
+  - url: https://docs.aurorasolar.com/reference/aurora-solar-api
+    type: Documentation
+    note: API overview; tenant-scoped REST, current version v2024.05.
+  - url: https://docs.aurorasolar.com/reference/authentication
+    type: Documentation
+    note: API-key bearer tokens (sk_/rk_, sand_/prod_); production host api.aurorasolar.com, sandbox api-sandbox.aurorasolar.com; token UI on v2.aurorasolar.com.
+  - url: https://docs.aurorasolar.com/reference/listprojects
+    type: APIReference
+    note: Confirmed GET /tenants/{tenant_id}/projects with page/per_page (default 100, max 250).
+  - url: https://docs.aurorasolar.com/reference/createdesignrequest
+    type: APIReference
+    note: Confirmed POST /tenants/{tenant_id}/design_requests; async; falls back to project lat/long.
+  - url: https://docs.aurorasolar.com/reference/createwebhook
+    type: APIReference
+    note: Confirmed POST /tenants/{tenant_id}/webhooks; webhooks are the real-time delivery mechanism (not WebSocket).
+  - url: https://docs.aurorasolar.com/reference/rate-limits
+    type: Documentation
+    note: Default 90 requests/minute; 429 with Retry-After; recommends webhooks over polling. No WebSocket mentioned.
+  - url: https://docs.aurorasolar.com/llms.txt
+    type: Documentation
+    note: Machine-readable index of all reference pages and operations. All HTTP REST; no WebSocket surface listed.
+actions:
+  asyncapiPath: null
+  apisYmlUpdated: true
+  reason: |
+    No WebSocket protocol surface exists on Aurora Solar's API. The public API
+    is request/response REST over HTTPS, with real-time delivery handled by
+    outbound webhooks and long-running work handled by asynchronous
+    submit-then-poll endpoints. No AsyncAPI document was created because there
+    is no server-push streaming transport (WebSocket or SSE) on Aurora's own
+    API to model.

@@ -1,0 +1,97 @@
+specification: FinOps Framework
+specificationVersion: '1.0'
+schema: https://www.finops.org/framework/
+provider: Aurora Solar
+providerId: aurora-solar
+created: '2026-07-04'
+modified: '2026-07-04'
+reconciled: false
+tags:
+- Solar
+- Solar Design
+- PV
+- Proposals
+- FinOps
+- Cost Management
+- FOCUS
+description: >-
+  FinOps view of Aurora Solar spend. Aurora is a SaaS platform for solar sales
+  and design, billed primarily as per-user, per-month seat licenses (annual
+  commitment) across named tiers, with advanced capabilities (AutoDesigner,
+  advanced shading, storage) gated to higher tiers or sold as add-ons. Aurora
+  also offers a credit-based consumption model where individual projects/designs
+  are charged in credits. The API is not a separately metered product; API cost
+  is a function of the underlying subscription (seats) and any per-project credit
+  consumption that API-driven design/proposal generation triggers. Prices are not
+  published and are set through a sales quote.
+notes: >-
+  All amounts are quote-specific and unpublished; the dominant cost drivers are
+  seat count and, under the credit model, the number and type of designs/projects
+  generated. API automation can increase credit consumption (each auto-design /
+  AI-modeling run costs credits), so treat automated design generation as a
+  metered cost even though the HTTP calls themselves are not billed per request.
+sources:
+- https://aurorasolar.com/pricing/
+- https://docs.aurorasolar.com/reference/aurora-solar-api
+- https://focus.finops.org/focus-specification/v1-3/
+alignedWith:
+  framework: FinOps Foundation Framework
+  frameworkUrl: https://www.finops.org/framework/
+  dataSpec: FOCUS
+  dataSpecVersion: '1.3'
+  dataSpecUrl: https://focus.finops.org/focus-specification/v1-3/
+publisherName: Aurora Solar
+serviceCategory: Software as a Service
+billingModel:
+  pricingCategory: Subscription-Based
+  billingFrequency: Annual
+  billingCurrency: USD
+  chargeCategories:
+  - Purchase
+  - Usage
+  - Adjustment
+focusColumns:
+  ServiceName: Aurora Solar
+  ServiceCategory: Software as a Service
+  ProviderName: Aurora Solar
+  PublisherName: Aurora Solar
+  InvoiceIssuerName: Aurora Solar
+  BillingCurrency: USD
+  ChargeCategory: Purchase
+  PricingCategory: Subscription-Based
+meters:
+- name: seat_licenses
+  description: Per-user monthly seat licenses, billed annually per tier (Grow/Scale/Run or equivalent).
+  unit: seats
+  aggregation: sum
+  dimensions:
+  - tenant
+  - tier
+  - user
+- name: design_credits
+  description: Credits consumed per project/design under Aurora's credit-based consumption model.
+  unit: credits
+  aggregation: sum
+  dimensions:
+  - tenant
+  - project
+  - design
+- name: ai_modeling_addon
+  description: Additional credits for AI/auto modeling add-ons on a design.
+  unit: credits
+  aggregation: sum
+  dimensions:
+  - tenant
+  - design
+principles:
+- name: Visibility
+  description: Track seat count per tenant/tier and credit consumption per project and design; attribute automated (API-driven) design runs to the credits they consume.
+- name: Allocation
+  description: Tag projects and API keys (Restricted keys can be scoped by tags) per team/office so seat and credit spend maps to internal cost centers.
+- name: Optimization
+  description: Right-size seats to active designers, prefer webhooks over polling to avoid wasted API calls, and reuse designs/proposals rather than regenerating to avoid extra credit consumption.
+- name: Accountability
+  description: Assign owners per tenant and per office; review seat utilization and monthly credit burn against the negotiated Aurora agreement.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

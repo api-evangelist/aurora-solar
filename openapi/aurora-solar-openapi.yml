@@ -1,0 +1,1258 @@
+openapi: 3.0.3
+info:
+  title: Aurora Solar API
+  description: >-
+    The Aurora API lets you build apps and integrations on the Aurora Solar
+    platform for solar sales and design. It is a tenant-scoped REST API: every
+    resource lives under /tenants/{tenant_id}. Requests are authenticated with
+    an API-key bearer token (Standard keys prefixed `sk_`, Restricted keys
+    prefixed `rk_`; `sand_`/`prod_` denote the environment) passed as
+    `Authorization: Bearer <token>`. The current API version is v2024.05,
+    selected via the `Aurora-Version` request header.
+
+
+    Scope note: A handful of paths in this document are confirmed directly
+    against Aurora's public reference (List Projects, Create Design Request,
+    Create Webhook). The remaining paths are HONESTLY MODELED from Aurora's
+    published operation catalog (docs.aurorasolar.com/llms.txt) following the
+    same `/tenants/{tenant_id}/<resource>` convention; exact path segments for
+    modeled operations should be reconciled against the live reference, which is
+    partially gated. Modeled operations carry `x-modeled: true`.
+  version: v2024.05
+  contact:
+    name: Aurora Solar Developer Platform
+    url: https://docs.aurorasolar.com
+  license:
+    name: Proprietary
+    url: https://aurorasolar.com/terms-of-service/
+servers:
+  - url: https://api.aurorasolar.com
+    description: Production
+  - url: https://api-sandbox.aurorasolar.com
+    description: Sandbox
+security:
+  - bearerAuth: []
+tags:
+  - name: Projects
+    description: Customer/site records that anchor designs and proposals.
+  - name: Designs
+    description: Design requests and PV designs with simulation output.
+  - name: Proposals
+    description: Customer-facing proposals, templates, and PDFs.
+  - name: Consumption Profiles
+    description: Energy consumption profiles and utility bills.
+  - name: Users & Tenants
+    description: Tenant, users, roles, teams, and SSO.
+  - name: Webhooks
+    description: Event notification subscriptions.
+  - name: Financings
+    description: Financings and financier integrations.
+  - name: Agreements
+    description: Customer agreements and signed downloads.
+paths:
+  /tenants/{tenant_id}/projects:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listProjects
+      tags: [Projects]
+      summary: List projects
+      description: >-
+        Lists projects for the tenant, sorted by created-at descending. Without
+        `page`/`per_page` the first 100 projects are returned.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page to return, 1-indexed (default 1).
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          required: false
+          description: Items per page (default 100, max 250).
+          schema:
+            type: integer
+            default: 100
+            maximum: 250
+      responses:
+        '200':
+          description: A page of projects.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createProject
+      tags: [Projects]
+      summary: Create a project
+      description: Creates a new project (customer/site) in the tenant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: The created project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /tenants/{tenant_id}/projects/{project_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: retrieveProject
+      tags: [Projects]
+      summary: Retrieve a project
+      description: Retrieves a single project by ID.
+      responses:
+        '200':
+          description: The requested project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateProject
+      tags: [Projects]
+      summary: Update a project
+      description: Updates fields on an existing project.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '200':
+          description: The updated project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      operationId: deleteProject
+      tags: [Projects]
+      summary: Delete a project
+      description: Deletes a project.
+      x-modeled: true
+      responses:
+        '204':
+          description: The project was deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/projects/{project_id}/ahj:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: retrieveAhj
+      tags: [Projects]
+      summary: Retrieve AHJ
+      description: Retrieves the authority-having-jurisdiction details for a project.
+      x-modeled: true
+      responses:
+        '200':
+          description: AHJ details.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/design_requests:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    post:
+      operationId: createDesignRequest
+      tags: [Designs]
+      summary: Create a design request
+      description: >-
+        Submits an asynchronous design request for a project. If latitude and
+        longitude are omitted, the project's coordinates are used. Poll the
+        design request or subscribe to a webhook for completion.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignRequestInput'
+      responses:
+        '202':
+          description: The accepted design request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /tenants/{tenant_id}/design_requests/{design_request_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: design_request_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveDesignRequest
+      tags: [Designs]
+      summary: Retrieve a design request
+      description: Retrieves the status and result of a design request.
+      x-modeled: true
+      responses:
+        '200':
+          description: The design request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesignRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      operationId: acceptDesignRequest
+      tags: [Designs]
+      summary: Accept a design request
+      description: Accepts a completed design request, producing a design.
+      x-modeled: true
+      responses:
+        '200':
+          description: The resulting design.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/designs:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listDesigns
+      tags: [Designs]
+      summary: List designs
+      description: Lists designs for the tenant, optionally filtered by project.
+      x-modeled: true
+      parameters:
+        - name: project_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of designs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  designs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Design'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createDesign
+      tags: [Designs]
+      summary: Create a design
+      description: Creates a design for a project.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DesignInput'
+      responses:
+        '201':
+          description: The created design.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tenants/{tenant_id}/designs/{design_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/DesignId'
+    get:
+      operationId: retrieveDesign
+      tags: [Designs]
+      summary: Retrieve a design
+      description: Retrieves a design, including arrays, components, and pricing references.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested design.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Design'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/designs/{design_id}/summary:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/DesignId'
+    get:
+      operationId: retrieveDesignSummary
+      tags: [Designs]
+      summary: Retrieve design summary
+      description: >-
+        Retrieves a design summary including system size, annual production, and
+        performance-simulation outputs.
+      x-modeled: true
+      responses:
+        '200':
+          description: The design summary.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/proposals:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    post:
+      operationId: createProposal
+      tags: [Proposals]
+      summary: Create a proposal
+      description: Creates a customer-facing proposal from a design.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalInput'
+      responses:
+        '201':
+          description: The created proposal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tenants/{tenant_id}/proposals/{proposal_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveProposal
+      tags: [Proposals]
+      summary: Retrieve a proposal
+      description: Retrieves a proposal by ID.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested proposal.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteProposal
+      tags: [Proposals]
+      summary: Delete a proposal
+      description: Deletes a proposal.
+      x-modeled: true
+      responses:
+        '204':
+          description: The proposal was deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/proposal_templates:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listProposalTemplates
+      tags: [Proposals]
+      summary: List proposal templates
+      description: Lists the proposal templates configured for the tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of proposal templates.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  proposal_templates:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tenants/{tenant_id}/designs/{design_id}/web_proposal:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/DesignId'
+    get:
+      operationId: generateWebProposalUrl
+      tags: [Proposals]
+      summary: Generate web proposal URL
+      description: Generates a hosted web proposal URL for a design.
+      x-modeled: true
+      responses:
+        '200':
+          description: The web proposal URL.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/projects/{project_id}/consumption_profile:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: retrieveConsumptionProfile
+      tags: [Consumption Profiles]
+      summary: Retrieve consumption profile
+      description: Retrieves the energy consumption profile for a project.
+      x-modeled: true
+      responses:
+        '200':
+          description: The consumption profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumptionProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateConsumptionProfile
+      tags: [Consumption Profiles]
+      summary: Update consumption profile
+      description: Updates the energy consumption profile for a project.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumptionProfile'
+      responses:
+        '200':
+          description: The updated consumption profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumptionProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tenants/{tenant_id}/projects/{project_id}/utility_bills:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: listUtilityBills
+      tags: [Consumption Profiles]
+      summary: List utility bills
+      description: Lists the utility bills uploaded for a project.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of utility bills.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  utility_bills:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tenants/{tenant_id}/users:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listUsers
+      tags: [Users & Tenants]
+      summary: List users
+      description: Lists the users in a tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of users.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createUser
+      tags: [Users & Tenants]
+      summary: Create a user
+      description: Creates a user in a tenant.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: The created user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tenants/{tenant_id}/users/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveUser
+      tags: [Users & Tenants]
+      summary: Retrieve a user
+      description: Retrieves a single user.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateUser
+      tags: [Users & Tenants]
+      summary: Update a user
+      description: Updates a user, including activation state and role.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: The updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: retrieveTenant
+      tags: [Users & Tenants]
+      summary: Retrieve the tenant
+      description: Retrieves the tenant record for the authenticated key.
+      x-modeled: true
+      responses:
+        '200':
+          description: The tenant.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/webhooks:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listWebhooks
+      tags: [Webhooks]
+      summary: List webhooks
+      description: Lists the webhooks configured for the tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of webhooks.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhooks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createWebhook
+      tags: [Webhooks]
+      summary: Create a webhook
+      description: >-
+        Creates a webhook subscription so Aurora POSTs event notifications to
+        your endpoint (for example when an async design job completes).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookInput'
+      responses:
+        '201':
+          description: The created webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tenants/{tenant_id}/webhooks/{webhook_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: webhook_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveWebhook
+      tags: [Webhooks]
+      summary: Retrieve a webhook
+      description: Retrieves a webhook by ID.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateWebhook
+      tags: [Webhooks]
+      summary: Update a webhook
+      description: Updates a webhook subscription.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookInput'
+      responses:
+        '200':
+          description: The updated webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteWebhook
+      tags: [Webhooks]
+      summary: Delete a webhook
+      description: Deletes a webhook subscription.
+      x-modeled: true
+      responses:
+        '204':
+          description: The webhook was deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/financings:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listFinancings
+      tags: [Financings]
+      summary: List financings
+      description: Lists financings for the tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of financings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  financings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Financing'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tenants/{tenant_id}/financings/{financing_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: financing_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveFinancing
+      tags: [Financings]
+      summary: Retrieve a financing
+      description: Retrieves a financing by ID.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested financing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Financing'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/financings/{financing_id}/push:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: financing_id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      operationId: pushFinancingToFinancier
+      tags: [Financings]
+      summary: Push financing to financier
+      description: Submits a financing to the configured financier/lender.
+      x-modeled: true
+      responses:
+        '200':
+          description: The push result.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/agreements:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listAgreements
+      tags: [Agreements]
+      summary: List agreements
+      description: Lists customer agreements for the tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of agreements.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agreements:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Agreement'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tenants/{tenant_id}/agreements/{agreement_id}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: agreement_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveAgreement
+      tags: [Agreements]
+      summary: Retrieve an agreement
+      description: Retrieves a customer agreement by ID.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested agreement.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agreement'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/agreements/{agreement_id}/link:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: agreement_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: retrieveAgreementLink
+      tags: [Agreements]
+      summary: Retrieve agreement link
+      description: Retrieves a hosted link where the customer can view/sign the agreement.
+      x-modeled: true
+      responses:
+        '200':
+          description: The agreement link.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: >-
+        API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys
+        `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as
+        `Authorization: Bearer <token>`.
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      description: The project ID.
+      schema:
+        type: string
+    DesignId:
+      name: design_id
+      in: path
+      required: true
+      description: The design ID.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: >-
+        Rate limit exceeded (default 90 requests/minute). Inspect the
+        `Retry-After` response header for when to retry.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
+    ProjectInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        customer_first_name:
+          type: string
+        customer_last_name:
+          type: string
+        customer_email:
+          type: string
+          format: email
+        customer_phone:
+          type: string
+        status:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    Project:
+      allOf:
+        - $ref: '#/components/schemas/ProjectInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            tenant_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+    DesignRequestInput:
+      type: object
+      required:
+        - project_id
+      properties:
+        project_id:
+          type: string
+        design_mode:
+          type: string
+          description: Design generation mode (for example manual or auto_designer).
+          enum:
+            - manual
+            - auto_designer
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    DesignRequest:
+      allOf:
+        - $ref: '#/components/schemas/DesignRequestInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum:
+                - pending
+                - in_progress
+                - completed
+                - failed
+            design_id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+    DesignInput:
+      type: object
+      required:
+        - project_id
+      properties:
+        project_id:
+          type: string
+        name:
+          type: string
+    Design:
+      allOf:
+        - $ref: '#/components/schemas/DesignInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            system_size_kw:
+              type: number
+              format: double
+            annual_production_kwh:
+              type: number
+              format: double
+            arrays:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            created_at:
+              type: string
+              format: date-time
+    ProposalInput:
+      type: object
+      required:
+        - design_id
+      properties:
+        design_id:
+          type: string
+        proposal_template_id:
+          type: string
+    Proposal:
+      allOf:
+        - $ref: '#/components/schemas/ProposalInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+            web_url:
+              type: string
+              format: uri
+            created_at:
+              type: string
+              format: date-time
+    ConsumptionProfile:
+      type: object
+      properties:
+        project_id:
+          type: string
+        annual_consumption_kwh:
+          type: number
+          format: double
+        monthly_consumption_kwh:
+          type: array
+          items:
+            type: number
+            format: double
+        utility_rate_name:
+          type: string
+        source:
+          type: string
+          description: How the profile was derived (for example utility_bill or manual).
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - invited
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    WebhookInput:
+      type: object
+      required:
+        - url
+        - event_types
+      properties:
+        url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          description: Event types to subscribe to (for example design_request.completed).
+          items:
+            type: string
+        enabled:
+          type: boolean
+          default: true
+    Webhook:
+      allOf:
+        - $ref: '#/components/schemas/WebhookInput'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              format: date-time
+    Financing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+        financier:
+          type: string
+        product:
+          type: string
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+    Agreement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - sent
+            - signed
+            - declined
+        signed_at:
+          type: string
+          format: date-time

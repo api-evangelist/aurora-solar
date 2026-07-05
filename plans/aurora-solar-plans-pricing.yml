@@ -1,0 +1,150 @@
+specification: API Commons Plans
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/Plans
+provider: Aurora Solar
+providerId: aurora-solar
+created: '2026-07-04'
+modified: '2026-07-04'
+reconciled: false
+tags:
+- Solar
+- Solar Design
+- PV
+- Proposals
+- Plans
+description: >-
+  Aurora Solar does not publish prices on its website - plans are quoted through
+  a sales process (demo + discovery call). Aurora sells the platform primarily as
+  per-user, per-month seat licenses across named tiers, billed annually, with
+  higher-value capabilities (for example AutoDesigner, advanced shading, storage)
+  gated to upper tiers or sold as add-ons. Aurora has also introduced a
+  credit-based consumption model where individual projects are charged in credits
+  (a residential design is on the order of ~220 credits, with AI/auto-modeling as
+  an add-on). The API itself is not separately metered; API access is a function
+  of your Aurora subscription and the API keys your tenant admin issues. All
+  dollar figures below are indicative third-party estimates, NOT official Aurora
+  list prices, and must be reconciled with an Aurora quote.
+notes: >-
+  Tier names and prices vary by source and change over time; publicly reported
+  tiers have included names such as Grow / Scale / Run in addition to older
+  Basic / Pro / Premium naming. Treat all amounts as unverified estimates.
+  Confirm current tiers, credit rates, and add-on pricing directly with Aurora
+  sales.
+sources:
+- https://aurorasolar.com/pricing/
+- https://docs.aurorasolar.com/reference/authentication
+- https://help.aurorasolar.com/hc/en-us/articles/11646854001299-API-Tokens
+plans:
+- id: aurora-grow
+  name: Grow
+  type: paid
+  description: >-
+    Entry seat-based tier for smaller sales and design teams. Includes core
+    remote design and proposal generation. Indicative third-party estimate
+    ~$159 per user per month billed annually (unverified).
+  entries:
+  - label: Seat License
+    name: seat_grow
+    type: flat
+    metric: seat
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: est. ~$159/user/month billed annually (contact sales; unverified)
+    userMultiplied: true
+  elements:
+  - name: Remote Design
+  - name: Proposals
+  - name: API Access
+- id: aurora-scale
+  name: Scale
+  type: paid
+  description: >-
+    Mid seat-based tier adding more design and sales capability. Indicative
+    third-party estimate ~$219 per user per month billed annually (unverified).
+  entries:
+  - label: Seat License
+    name: seat_scale
+    type: flat
+    metric: seat
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: est. ~$219/user/month billed annually (contact sales; unverified)
+    userMultiplied: true
+  elements:
+  - name: Remote Design
+  - name: Proposals
+  - name: Advanced Shading
+  - name: API Access
+- id: aurora-run
+  name: Run
+  type: paid
+  description: >-
+    Upper seat-based tier for full-scale operations, unlocking the most advanced
+    capabilities. Indicative third-party estimate from ~$259 per user per month
+    billed annually (unverified).
+  entries:
+  - label: Seat License
+    name: seat_run
+    type: flat
+    metric: seat
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: est. from ~$259/user/month billed annually (contact sales; unverified)
+    userMultiplied: true
+  elements:
+  - name: AutoDesigner
+  - name: Advanced Shading
+  - name: Storage / Battery Design
+  - name: API Access
+- id: aurora-credits
+  name: Credit-Based Consumption
+  type: usage
+  description: >-
+    Consumption model where projects are charged in credits rather than (or in
+    addition to) seats - a residential design runs on the order of ~220 credits,
+    with AI/auto modeling as an add-on. Exact credit price is quote-specific.
+  entries:
+  - label: Design Credits
+    name: design_credits
+    type: usage
+    metric: credits
+    limit: -1
+    timeFrame: month
+    geo: global
+    unit: 1
+    price: quote-based per-credit rate (est. residential design ~220 credits; unverified)
+    userMultiplied: false
+  elements:
+  - name: Per-Project Billing
+  - name: AI Modeling Add-On
+- id: aurora-enterprise
+  name: Enterprise / Custom
+  type: enterprise
+  description: >-
+    Custom agreements for larger installers and enterprises - negotiated seat
+    counts, credit allotments, add-ons, SSO, security review, and support.
+    Contact Aurora sales.
+  entries:
+  - label: Enterprise Agreement
+    name: enterprise
+    type: flat
+    metric: contract
+    limit: -1
+    timeFrame: year
+    geo: global
+    unit: 1
+    price: contact sales
+    userMultiplied: false
+  elements:
+  - name: Custom Volume Pricing
+  - name: SSO
+  - name: Priority Support
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

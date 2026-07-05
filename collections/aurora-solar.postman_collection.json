@@ -1,0 +1,255 @@
+{
+  "info": {
+    "name": "Aurora Solar API",
+    "description": "Tenant-scoped REST API for the Aurora Solar sales & design platform (v2024.05). Every resource lives under /tenants/{tenant_id}. Base URL: https://api.aurorasolar.com (production) or https://api-sandbox.aurorasolar.com (sandbox). Authenticate with an API-key bearer token (Standard sk_, Restricted rk_). Some paths are confirmed against the public reference (List Projects, Create Design Request, Create Webhook); others are honestly modeled from Aurora's published operation catalog and should be reconciled against the gated reference.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{bearerToken}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.aurorasolar.com", "type": "string" },
+    { "key": "tenant_id", "value": "", "type": "string" },
+    { "key": "bearerToken", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List projects",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/projects?page=1&per_page=100", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "projects"], "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "100" }] },
+            "description": "Lists projects for the tenant, sorted by created-at descending."
+          }
+        },
+        {
+          "name": "Create a project",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"123 Main St\",\n  \"customer_first_name\": \"Jane\",\n  \"customer_last_name\": \"Doe\",\n  \"latitude\": 37.7749,\n  \"longitude\": -122.4194\n}" },
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/projects", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "projects"] },
+            "description": "Creates a new project (customer/site) in the tenant."
+          }
+        },
+        {
+          "name": "Retrieve a project",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/projects/:project_id", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "projects", ":project_id"], "variable": [{ "key": "project_id", "value": "" }] },
+            "description": "Retrieves a single project by ID."
+          }
+        },
+        {
+          "name": "Update a project (modeled)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"in_progress\"\n}" },
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/projects/:project_id", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "projects", ":project_id"], "variable": [{ "key": "project_id", "value": "" }] },
+            "description": "Modeled: updates fields on an existing project."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Designs",
+      "item": [
+        {
+          "name": "Create a design request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"project_id\": \"\",\n  \"design_mode\": \"auto_designer\"\n}" },
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/design_requests", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "design_requests"] },
+            "description": "Submits an asynchronous design request. If lat/long are omitted, the project's coordinates are used."
+          }
+        },
+        {
+          "name": "Retrieve a design request (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/design_requests/:design_request_id", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "design_requests", ":design_request_id"], "variable": [{ "key": "design_request_id", "value": "" }] },
+            "description": "Modeled: retrieves the status and result of a design request."
+          }
+        },
+        {
+          "name": "List designs (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/designs?project_id=", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "designs"], "query": [{ "key": "project_id", "value": "" }] },
+            "description": "Modeled: lists designs, optionally filtered by project."
+          }
+        },
+        {
+          "name": "Retrieve a design (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/designs/:design_id", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "designs", ":design_id"], "variable": [{ "key": "design_id", "value": "" }] },
+            "description": "Modeled: retrieves a design including arrays and pricing references."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Proposals",
+      "item": [
+        {
+          "name": "Create a proposal (modeled)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"design_id\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/proposals", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "proposals"] },
+            "description": "Modeled: creates a customer-facing proposal from a design."
+          }
+        },
+        {
+          "name": "Generate web proposal URL (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/designs/:design_id/web_proposal", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "designs", ":design_id", "web_proposal"], "variable": [{ "key": "design_id", "value": "" }] },
+            "description": "Modeled: generates a hosted web proposal URL for a design."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consumption Profiles",
+      "item": [
+        {
+          "name": "Retrieve consumption profile (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/projects/:project_id/consumption_profile", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "projects", ":project_id", "consumption_profile"], "variable": [{ "key": "project_id", "value": "" }] },
+            "description": "Modeled: retrieves the energy consumption profile for a project."
+          }
+        },
+        {
+          "name": "Update consumption profile (modeled)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"annual_consumption_kwh\": 10500\n}" },
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/projects/:project_id/consumption_profile", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "projects", ":project_id", "consumption_profile"], "variable": [{ "key": "project_id", "value": "" }] },
+            "description": "Modeled: updates the energy consumption profile for a project."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users & Tenants",
+      "item": [
+        {
+          "name": "Retrieve the tenant (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}"] },
+            "description": "Modeled: retrieves the tenant record for the authenticated key."
+          }
+        },
+        {
+          "name": "List users (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/users", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "users"] },
+            "description": "Modeled: lists the users in a tenant."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "List webhooks (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/webhooks", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "webhooks"] },
+            "description": "Modeled: lists the webhooks configured for the tenant."
+          }
+        },
+        {
+          "name": "Create a webhook",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"url\": \"https://example.com/aurora-webhook\",\n  \"event_types\": [\"design_request.completed\"]\n}" },
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/webhooks", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "webhooks"] },
+            "description": "Creates a webhook subscription so Aurora POSTs event notifications to your endpoint."
+          }
+        },
+        {
+          "name": "Delete a webhook (modeled)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/webhooks/:webhook_id", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "webhooks", ":webhook_id"], "variable": [{ "key": "webhook_id", "value": "" }] },
+            "description": "Modeled: deletes a webhook subscription."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Financings",
+      "item": [
+        {
+          "name": "List financings (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/financings", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "financings"] },
+            "description": "Modeled: lists financings for the tenant."
+          }
+        },
+        {
+          "name": "Push financing to financier (modeled)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/financings/:financing_id/push", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "financings", ":financing_id", "push"], "variable": [{ "key": "financing_id", "value": "" }] },
+            "description": "Modeled: submits a financing to the configured financier/lender."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agreements",
+      "item": [
+        {
+          "name": "List agreements (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/agreements", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "agreements"] },
+            "description": "Modeled: lists customer agreements for the tenant."
+          }
+        },
+        {
+          "name": "Retrieve agreement link (modeled)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/tenants/{{tenant_id}}/agreements/:agreement_id/link", "host": ["{{baseUrl}}"], "path": ["tenants", "{{tenant_id}}", "agreements", ":agreement_id", "link"], "variable": [{ "key": "agreement_id", "value": "" }] },
+            "description": "Modeled: retrieves a hosted link where the customer can view/sign the agreement."
+          }
+        }
+      ]
+    }
+  ]
+}

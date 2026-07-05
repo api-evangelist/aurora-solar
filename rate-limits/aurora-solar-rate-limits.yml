@@ -1,0 +1,65 @@
+specification: API Commons Rate Limits
+specificationVersion: '0.1'
+schema: https://raw.githubusercontent.com/api-evangelist/interface-research/main/schema/api-commons.yml#/$defs/RateLimits
+provider: Aurora Solar
+providerId: aurora-solar
+created: '2026-07-04'
+modified: '2026-07-04'
+reconciled: false
+tags:
+- Solar
+- Solar Design
+- PV
+- Rate Limiting
+- Quotas
+description: >-
+  Aurora publishes a default API rate limit of 90 requests per minute. Individual
+  endpoints may enforce their own limits and are documented accordingly. When a
+  limit is exceeded, Aurora returns HTTP 429 and clients should inspect the
+  response body and/or the `Retry-After` response header to know when the next
+  call is allowed. Aurora explicitly recommends webhooks over polling to stay
+  within limits, and points high-volume customers to their account representative
+  for workflows tailored to their needs. Many design operations (AutoDesigner,
+  irradiance analysis, performance simulation, plan-set and utility-bill jobs) are
+  asynchronous - submit-then-poll or webhook - which naturally reduces request
+  pressure.
+notes: >-
+  The 90 req/min default is documented on Aurora's Rate Limits reference. Exact
+  per-endpoint overrides and any per-tenant/per-key differences are only partly
+  documented publicly; confirm against docs.aurorasolar.com/reference/rate-limits
+  and your account representative during reconciliation.
+sources:
+- https://docs.aurorasolar.com/reference/rate-limits
+- https://docs.aurorasolar.com/reference/authentication
+- https://docs.aurorasolar.com/reference/aurora-solar-api
+responseCodes:
+  throttled: 429
+limits:
+- name: Default API Requests
+  scope: tenant
+  metric: requests
+  limit: 90 per minute
+  notes: Documented default rate limit across the API. Exceeding it returns 429.
+- name: Per-Endpoint Limits
+  scope: endpoint
+  metric: requests
+  limit: varies
+  notes: Individual endpoints may define their own limits, documented on the endpoint reference.
+- name: Asynchronous Jobs
+  scope: tenant
+  metric: jobs
+  limit: not published
+  notes: >-
+    Design generation, irradiance analysis, performance simulation, plan sets,
+    and utility-bill uploads are async; poll status or subscribe to webhooks
+    rather than tight-loop polling.
+policies:
+- name: Retry-After
+  description: On 429, honor the Retry-After response header (and/or response body) to time the next request.
+- name: Prefer Webhooks
+  description: Aurora recommends subscribing to webhooks instead of polling to stay within rate limits.
+- name: Backoff Strategy
+  description: Implement exponential backoff with jitter on 429 and 5xx responses.
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com

@@ -1,0 +1,269 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aurora Solar API",
+    "version": "v2024.05"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": { "name": "Projects", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List projects.", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects?page=1&per_page=100",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "page", "value": "1", "type": "query", "description": "Page to return, 1-indexed." },
+              { "name": "per_page", "value": "100", "type": "query", "description": "Items per page (max 250)." }
+            ]
+          },
+          "docs": "Lists projects for the tenant, sorted by created-at descending."
+        },
+        {
+          "info": { "name": "Create a project.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ],
+            "body": { "type": "json", "data": "{\n  \"name\": \"123 Main St\",\n  \"customer_first_name\": \"Jane\",\n  \"customer_last_name\": \"Doe\"\n}" }
+          },
+          "docs": "Creates a new project (customer/site) in the tenant."
+        },
+        {
+          "info": { "name": "Retrieve a project.", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "project_id", "value": "", "type": "path", "description": "The project ID." }
+            ]
+          },
+          "docs": "Retrieves a single project by ID."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Designs", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Create a design request.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/design_requests",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ],
+            "body": { "type": "json", "data": "{\n  \"project_id\": \"\",\n  \"design_mode\": \"auto_designer\"\n}" }
+          },
+          "docs": "Submits an asynchronous design request. If lat/long are omitted, the project's coordinates are used."
+        },
+        {
+          "info": { "name": "Retrieve a design request (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/design_requests/:design_request_id",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "design_request_id", "value": "", "type": "path", "description": "The design request ID." }
+            ]
+          },
+          "docs": "Modeled: retrieves the status and result of a design request."
+        },
+        {
+          "info": { "name": "Retrieve a design (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs/:design_id",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "design_id", "value": "", "type": "path", "description": "The design ID." }
+            ]
+          },
+          "docs": "Modeled: retrieves a design including arrays and pricing references."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Proposals", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Create a proposal (modeled).", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/proposals",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ],
+            "body": { "type": "json", "data": "{\n  \"design_id\": \"\"\n}" }
+          },
+          "docs": "Modeled: creates a customer-facing proposal from a design."
+        },
+        {
+          "info": { "name": "Generate web proposal URL (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs/:design_id/web_proposal",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "design_id", "value": "", "type": "path", "description": "The design ID." }
+            ]
+          },
+          "docs": "Modeled: generates a hosted web proposal URL for a design."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Consumption Profiles", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Retrieve consumption profile (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id/consumption_profile",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "project_id", "value": "", "type": "path", "description": "The project ID." }
+            ]
+          },
+          "docs": "Modeled: retrieves the energy consumption profile for a project."
+        },
+        {
+          "info": { "name": "Update consumption profile (modeled).", "type": "http" },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id/consumption_profile",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "project_id", "value": "", "type": "path", "description": "The project ID." }
+            ],
+            "body": { "type": "json", "data": "{\n  \"annual_consumption_kwh\": 10500\n}" }
+          },
+          "docs": "Modeled: updates the energy consumption profile for a project."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Users & Tenants", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "Retrieve the tenant (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ]
+          },
+          "docs": "Modeled: retrieves the tenant record for the authenticated key."
+        },
+        {
+          "info": { "name": "List users (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/users",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ]
+          },
+          "docs": "Modeled: lists the users in a tenant."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Webhooks", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List webhooks (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/webhooks",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ]
+          },
+          "docs": "Modeled: lists the webhooks configured for the tenant."
+        },
+        {
+          "info": { "name": "Create a webhook.", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/webhooks",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ],
+            "body": { "type": "json", "data": "{\n  \"url\": \"https://example.com/aurora-webhook\",\n  \"event_types\": [\"design_request.completed\"]\n}" }
+          },
+          "docs": "Creates a webhook subscription so Aurora POSTs event notifications to your endpoint."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Financings", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List financings (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/financings",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ]
+          },
+          "docs": "Modeled: lists financings for the tenant."
+        },
+        {
+          "info": { "name": "Push financing to financier (modeled).", "type": "http" },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/financings/:financing_id/push",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "financing_id", "value": "", "type": "path", "description": "The financing ID." }
+            ]
+          },
+          "docs": "Modeled: submits a financing to the configured financier/lender."
+        }
+      ]
+    },
+    {
+      "info": { "name": "Agreements", "type": "folder" },
+      "items": [
+        {
+          "info": { "name": "List agreements (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/agreements",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." }
+            ]
+          },
+          "docs": "Modeled: lists customer agreements for the tenant."
+        },
+        {
+          "info": { "name": "Retrieve agreement link (modeled).", "type": "http" },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/agreements/:agreement_id/link",
+            "params": [
+              { "name": "tenant_id", "value": "", "type": "path", "description": "The tenant ID." },
+              { "name": "agreement_id", "value": "", "type": "path", "description": "The agreement ID." }
+            ]
+          },
+          "docs": "Modeled: retrieves a hosted link where the customer can view/sign the agreement."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
