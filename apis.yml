@@ -197,6 +197,10 @@ apis:
   description: List and retrieve customer agreements, get a hosted agreement link,
     and run/retrieve generation of a signed-agreement download URL.
 common:
+- type: DomainSecurity
+  url: security/aurora-solar-domain-security.yml
+- type: Authentication
+  url: authentication/aurora-solar-authentication.yml
 - type: GitHubOrganization
   url: https://github.com/aurorasolar
 - type: LinkedIn

@@ -1,0 +1,14 @@
+generated: '2026-07-11'
+method: derived
+source: openapi/aurora-solar-openapi.yml
+summary:
+  types:
+  - http
+schemes:
+- name: bearerAuth
+  type: http
+  scheme: bearer
+  description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`;
+    `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
+  sources:
+  - openapi/aurora-solar-openapi.yml
