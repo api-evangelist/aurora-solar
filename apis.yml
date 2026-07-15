@@ -197,6 +197,8 @@ apis:
   description: List and retrieve customer agreements, get a hosted agreement link,
     and run/retrieve generation of a signed-agreement download URL.
 common:
+- type: AgenticAccess
+  url: agentic-access/aurora-solar-agentic-access.yml
 - type: DomainSecurity
   url: security/aurora-solar-domain-security.yml
 - type: Authentication
