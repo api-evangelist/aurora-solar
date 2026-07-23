@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+  title: Aurora Solar Agreements Projects API
+  description: 'The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design. It is a tenant-scoped REST API: every resource lives under /tenants/{tenant_id}. Requests are authenticated with an API-key bearer token (Standard keys prefixed `sk_`, Restricted keys prefixed `rk_`; `sand_`/`prod_` denote the environment) passed as `Authorization: Bearer <token>`. The current API version is v2024.05, selected via the `Aurora-Version` request header.
+
+
+    Scope note: A handful of paths in this document are confirmed directly against Aurora''s public reference (List Projects, Create Design Request, Create Webhook). The remaining paths are HONESTLY MODELED from Aurora''s published operation catalog (docs.aurorasolar.com/llms.txt) following the same `/tenants/{tenant_id}/<resource>` convention; exact path segments for modeled operations should be reconciled against the live reference, which is partially gated. Modeled operations carry `x-modeled: true`.'
+  version: v2024.05
+  contact:
+    name: Aurora Solar Developer Platform
+    url: https://docs.aurorasolar.com
+  license:
+    name: Proprietary
+    url: https://aurorasolar.com/terms-of-service/
+servers:
+- url: https://api.aurorasolar.com
+  description: Production
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Projects
+  description: Customer/site records that anchor designs and proposals.
+paths:
+  /tenants/{tenant_id}/projects:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listProjects
+      tags:
+      - Projects
+      summary: List projects
+      description: Lists projects for the tenant, sorted by created-at descending. Without `page`/`per_page` the first 100 projects are returned.
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page to return, 1-indexed (default 1).
+        schema:
+          type: integer
+          default: 1
+      - name: per_page
+        in: query
+        required: false
+        description: Items per page (default 100, max 250).
+        schema:
+          type: integer
+          default: 100
+          maximum: 250
+      responses:
+        '200':
+          description: A page of projects.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createProject
+      tags:
+      - Projects
+      summary: Create a project
+      description: Creates a new project (customer/site) in the tenant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: The created project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /tenants/{tenant_id}/projects/{project_id}:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: retrieveProject
+      tags:
+      - Projects
+      summary: Retrieve a project
+      description: Retrieves a single project by ID.
+      responses:
+        '200':
+          description: The requested project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateProject
+      tags:
+      - Projects
+      summary: Update a project
+      description: Updates fields on an existing project.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '200':
+          description: The updated project.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      operationId: deleteProject
+      tags:
+      - Projects
+      summary: Delete a project
+      description: Deletes a project.
+      x-modeled: true
+      responses:
+        '204':
+          description: The project was deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/projects/{project_id}/ahj:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: retrieveAhj
+      tags:
+      - Projects
+      summary: Retrieve AHJ
+      description: Retrieves the authority-having-jurisdiction details for a project.
+      x-modeled: true
+      responses:
+        '200':
+          description: AHJ details.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
+    ProjectInput:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+        customer_first_name:
+          type: string
+        customer_last_name:
+          type: string
+        customer_email:
+          type: string
+          format: email
+        customer_phone:
+          type: string
+        status:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        address:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+    Project:
+      allOf:
+      - $ref: '#/components/schemas/ProjectInput'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          tenant_id:
+            type: string
+            format: uuid
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
+  responses:
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Rate limit exceeded (default 90 requests/minute). Inspect the `Retry-After` response header for when to retry.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      description: The project ID.
+      schema:
+        type: string
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'

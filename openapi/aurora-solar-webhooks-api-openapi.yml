@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Aurora Solar Agreements Webhooks API
+  description: 'The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design. It is a tenant-scoped REST API: every resource lives under /tenants/{tenant_id}. Requests are authenticated with an API-key bearer token (Standard keys prefixed `sk_`, Restricted keys prefixed `rk_`; `sand_`/`prod_` denote the environment) passed as `Authorization: Bearer <token>`. The current API version is v2024.05, selected via the `Aurora-Version` request header.
+
+
+    Scope note: A handful of paths in this document are confirmed directly against Aurora''s public reference (List Projects, Create Design Request, Create Webhook). The remaining paths are HONESTLY MODELED from Aurora''s published operation catalog (docs.aurorasolar.com/llms.txt) following the same `/tenants/{tenant_id}/<resource>` convention; exact path segments for modeled operations should be reconciled against the live reference, which is partially gated. Modeled operations carry `x-modeled: true`.'
+  version: v2024.05
+  contact:
+    name: Aurora Solar Developer Platform
+    url: https://docs.aurorasolar.com
+  license:
+    name: Proprietary
+    url: https://aurorasolar.com/terms-of-service/
+servers:
+- url: https://api.aurorasolar.com
+  description: Production
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Webhooks
+  description: Event notification subscriptions.
+paths:
+  /tenants/{tenant_id}/webhooks:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listWebhooks
+      tags:
+      - Webhooks
+      summary: List webhooks
+      description: Lists the webhooks configured for the tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of webhooks.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhooks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createWebhook
+      tags:
+      - Webhooks
+      summary: Create a webhook
+      description: Creates a webhook subscription so Aurora POSTs event notifications to your endpoint (for example when an async design job completes).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookInput'
+      responses:
+        '201':
+          description: The created webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tenants/{tenant_id}/webhooks/{webhook_id}:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    - name: webhook_id
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      operationId: retrieveWebhook
+      tags:
+      - Webhooks
+      summary: Retrieve a webhook
+      description: Retrieves a webhook by ID.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      operationId: updateWebhook
+      tags:
+      - Webhooks
+      summary: Update a webhook
+      description: Updates a webhook subscription.
+      x-modeled: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookInput'
+      responses:
+        '200':
+          description: The updated webhook.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteWebhook
+      tags:
+      - Webhooks
+      summary: Delete a webhook
+      description: Deletes a webhook subscription.
+      x-modeled: true
+      responses:
+        '204':
+          description: The webhook was deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    Webhook:
+      allOf:
+      - $ref: '#/components/schemas/WebhookInput'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          created_at:
+            type: string
+            format: date-time
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
+    WebhookInput:
+      type: object
+      required:
+      - url
+      - event_types
+      properties:
+        url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          description: Event types to subscribe to (for example design_request.completed).
+          items:
+            type: string
+        enabled:
+          type: boolean
+          default: true
+  responses:
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'

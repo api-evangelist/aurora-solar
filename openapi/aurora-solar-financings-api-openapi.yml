@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Aurora Solar Agreements Financings API
+  description: 'The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design. It is a tenant-scoped REST API: every resource lives under /tenants/{tenant_id}. Requests are authenticated with an API-key bearer token (Standard keys prefixed `sk_`, Restricted keys prefixed `rk_`; `sand_`/`prod_` denote the environment) passed as `Authorization: Bearer <token>`. The current API version is v2024.05, selected via the `Aurora-Version` request header.
+
+
+    Scope note: A handful of paths in this document are confirmed directly against Aurora''s public reference (List Projects, Create Design Request, Create Webhook). The remaining paths are HONESTLY MODELED from Aurora''s published operation catalog (docs.aurorasolar.com/llms.txt) following the same `/tenants/{tenant_id}/<resource>` convention; exact path segments for modeled operations should be reconciled against the live reference, which is partially gated. Modeled operations carry `x-modeled: true`.'
+  version: v2024.05
+  contact:
+    name: Aurora Solar Developer Platform
+    url: https://docs.aurorasolar.com
+  license:
+    name: Proprietary
+    url: https://aurorasolar.com/terms-of-service/
+servers:
+- url: https://api.aurorasolar.com
+  description: Production
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox
+security:
+- bearerAuth: []
+tags:
+- name: Financings
+  description: Financings and financier integrations.
+paths:
+  /tenants/{tenant_id}/financings:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    get:
+      operationId: listFinancings
+      tags:
+      - Financings
+      summary: List financings
+      description: Lists financings for the tenant.
+      x-modeled: true
+      responses:
+        '200':
+          description: A list of financings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  financings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Financing'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tenants/{tenant_id}/financings/{financing_id}:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    - name: financing_id
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      operationId: retrieveFinancing
+      tags:
+      - Financings
+      summary: Retrieve a financing
+      description: Retrieves a financing by ID.
+      x-modeled: true
+      responses:
+        '200':
+          description: The requested financing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Financing'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tenants/{tenant_id}/financings/{financing_id}/push:
+    parameters:
+    - $ref: '#/components/parameters/TenantId'
+    - name: financing_id
+      in: path
+      required: true
+      schema:
+        type: string
+    post:
+      operationId: pushFinancingToFinancier
+      tags:
+      - Financings
+      summary: Push financing to financier
+      description: Submits a financing to the configured financier/lender.
+      x-modeled: true
+      responses:
+        '200':
+          description: The push result.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
+    Financing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+        financier:
+          type: string
+        product:
+          type: string
+        amount:
+          type: number
+          format: double
+        status:
+          type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
