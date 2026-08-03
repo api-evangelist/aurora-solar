@@ -1,0 +1,28 @@
+{
+  "provider": "aurora-solar",
+  "sources": [
+    "aurora-solar-agreements-api-openapi.yml",
+    "aurora-solar-consumption-profiles-api-openapi.yml",
+    "aurora-solar-designs-api-openapi.yml",
+    "aurora-solar-financings-api-openapi.yml",
+    "aurora-solar-projects-api-openapi.yml",
+    "aurora-solar-proposals-api-openapi.yml",
+    "aurora-solar-users-tenants-api-openapi.yml",
+    "aurora-solar-webhooks-api-openapi.yml"
+  ],
+  "outputs": [
+    "aurora-solar-agreements-api-openapi.yml",
+    "aurora-solar-consumption-profiles-api-openapi.yml",
+    "aurora-solar-designs-api-openapi.yml",
+    "aurora-solar-financings-api-openapi.yml",
+    "aurora-solar-projects-api-openapi.yml",
+    "aurora-solar-proposals-api-openapi.yml",
+    "aurora-solar-users-tenants-api-openapi.yml",
+    "aurora-solar-webhooks-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}
