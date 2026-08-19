@@ -1,0 +1,192 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aurora Solar Agreements Designs API",
+    "version": "v2024.05"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Designs",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Create a design request",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/design_requests",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Submits an asynchronous design request for a project. If latitude and longitude are omitted, the project's coordinates are used. Poll the design request or subscribe to a webhook for completion."
+        },
+        {
+          "info": {
+            "name": "Retrieve a design request",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/design_requests/:design_request_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "design_request_id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Retrieves the status and result of a design request."
+        },
+        {
+          "info": {
+            "name": "Accept a design request",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/design_requests/:design_request_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "design_request_id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Accepts a completed design request, producing a design."
+        },
+        {
+          "info": {
+            "name": "List designs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "query"
+              }
+            ]
+          },
+          "docs": "Lists designs for the tenant, optionally filtered by project."
+        },
+        {
+          "info": {
+            "name": "Create a design",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a design for a project."
+        },
+        {
+          "info": {
+            "name": "Retrieve a design",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs/:design_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "design_id",
+                "value": "",
+                "type": "path",
+                "description": "The design ID."
+              }
+            ]
+          },
+          "docs": "Retrieves a design, including arrays, components, and pricing references."
+        },
+        {
+          "info": {
+            "name": "Retrieve design summary",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs/:design_id/summary",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "design_id",
+                "value": "",
+                "type": "path",
+                "description": "The design ID."
+              }
+            ]
+          },
+          "docs": "Retrieves a design summary including system size, annual production, and performance-simulation outputs."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

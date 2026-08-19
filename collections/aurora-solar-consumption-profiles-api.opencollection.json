@@ -1,0 +1,103 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aurora Solar Agreements Consumption Profiles API",
+    "version": "v2024.05"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Consumption Profiles",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Retrieve consumption profile",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id/consumption_profile",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ]
+          },
+          "docs": "Retrieves the energy consumption profile for a project."
+        },
+        {
+          "info": {
+            "name": "Update consumption profile",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id/consumption_profile",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Updates the energy consumption profile for a project."
+        },
+        {
+          "info": {
+            "name": "List utility bills",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id/utility_bills",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ]
+          },
+          "docs": "Lists the utility bills uploaded for a project."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

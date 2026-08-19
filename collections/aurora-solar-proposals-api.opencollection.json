@@ -1,0 +1,139 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aurora Solar Agreements Proposals API",
+    "version": "v2024.05"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Proposals",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Create a proposal",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/proposals",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a customer-facing proposal from a design."
+        },
+        {
+          "info": {
+            "name": "Retrieve a proposal",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/proposals/:proposal_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "proposal_id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Retrieves a proposal by ID."
+        },
+        {
+          "info": {
+            "name": "Delete a proposal",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/proposals/:proposal_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "proposal_id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Deletes a proposal."
+        },
+        {
+          "info": {
+            "name": "List proposal templates",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/proposal_templates",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              }
+            ]
+          },
+          "docs": "Lists the proposal templates configured for the tenant."
+        },
+        {
+          "info": {
+            "name": "Generate web proposal URL",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/designs/:design_id/web_proposal",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "design_id",
+                "value": "",
+                "type": "path",
+                "description": "The design ID."
+              }
+            ]
+          },
+          "docs": "Generates a hosted web proposal URL for a design."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

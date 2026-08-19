@@ -1,0 +1,182 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aurora Solar Agreements Projects API",
+    "version": "v2024.05"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Projects",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List projects",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "page",
+                "value": "",
+                "type": "query",
+                "description": "Page to return, 1-indexed (default 1)."
+              },
+              {
+                "name": "per_page",
+                "value": "",
+                "type": "query",
+                "description": "Items per page (default 100, max 250)."
+              }
+            ]
+          },
+          "docs": "Lists projects for the tenant, sorted by created-at descending. Without `page`/`per_page` the first 100 projects are returned."
+        },
+        {
+          "info": {
+            "name": "Create a project",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Creates a new project (customer/site) in the tenant."
+        },
+        {
+          "info": {
+            "name": "Retrieve a project",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ]
+          },
+          "docs": "Retrieves a single project by ID."
+        },
+        {
+          "info": {
+            "name": "Update a project",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            }
+          },
+          "docs": "Updates fields on an existing project."
+        },
+        {
+          "info": {
+            "name": "Delete a project",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ]
+          },
+          "docs": "Deletes a project."
+        },
+        {
+          "info": {
+            "name": "Retrieve AHJ",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/projects/:project_id/ahj",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "project_id",
+                "value": "",
+                "type": "path",
+                "description": "The project ID."
+              }
+            ]
+          },
+          "docs": "Retrieves the authority-having-jurisdiction details for a project."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

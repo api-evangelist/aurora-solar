@@ -1,0 +1,91 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Aurora Solar Agreements Financings API",
+    "version": "v2024.05"
+  },
+  "request": {
+    "auth": {
+      "type": "bearer",
+      "token": "{{bearerToken}}"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "Financings",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List financings",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/financings",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              }
+            ]
+          },
+          "docs": "Lists financings for the tenant."
+        },
+        {
+          "info": {
+            "name": "Retrieve a financing",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/financings/:financing_id",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "financing_id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Retrieves a financing by ID."
+        },
+        {
+          "info": {
+            "name": "Push financing to financier",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://api.aurorasolar.com/tenants/:tenant_id/financings/:financing_id/push",
+            "params": [
+              {
+                "name": "tenant_id",
+                "value": "",
+                "type": "path",
+                "description": "The tenant (organization) ID that owns the resource."
+              },
+              {
+                "name": "financing_id",
+                "value": "",
+                "type": "path"
+              }
+            ]
+          },
+          "docs": "Submits a financing to the configured financier/lender."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
