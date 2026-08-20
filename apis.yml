@@ -28,6 +28,14 @@ tags:
 - Solar Design
 - PV
 - Proposals
+- Cleantech
+- Energy
+- Sales Software
+tags_raw:
+- Solar
+- Solar Design
+- PV
+- Proposals
 - CleanTech
 - Energy
 - Sales Software
@@ -129,6 +137,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - Project
+  tags_raw:
   - Projects
   properties:
   - type: OpenAPI
@@ -195,6 +205,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - Webhook
+  tags_raw:
   - Webhooks
   properties:
   - type: OpenAPI
