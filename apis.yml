@@ -9,6 +9,18 @@ description: Aurora Solar is a cloud platform for solar sales and design. It pro
   tenant-scoped REST API secured with API-key bearer tokens that lets integrations
   manage projects, request and retrieve designs, generate proposals, pull consumption
   profiles, manage users and webhooks, and push financings and agreements.
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: true
+  label: Hosted service · you call their endpoint
+  confidence: high
+  source:
+  - openapi
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 accessModel:
   pricing: paid
   onboarding: self-serve
