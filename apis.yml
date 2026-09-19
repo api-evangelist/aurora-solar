@@ -106,6 +106,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - Design
+  tags_raw:
   - Designs
   properties:
   - type: OpenAPI
