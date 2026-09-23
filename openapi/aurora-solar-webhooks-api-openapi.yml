@@ -1,10 +1,7 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aurora Solar Agreements Webhooks API
-  description: 'The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design. It is a tenant-scoped REST API: every resource lives under /tenants/{tenant_id}. Requests are authenticated with an API-key bearer token (Standard keys prefixed `sk_`, Restricted keys prefixed `rk_`; `sand_`/`prod_` denote the environment) passed as `Authorization: Bearer <token>`. The current API version is v2024.05, selected via the `Aurora-Version` request header.
-
-
-    Scope note: A handful of paths in this document are confirmed directly against Aurora''s public reference (List Projects, Create Design Request, Create Webhook). The remaining paths are HONESTLY MODELED from Aurora''s published operation catalog (docs.aurorasolar.com/llms.txt) following the same `/tenants/{tenant_id}/<resource>` convention; exact path segments for modeled operations should be reconciled against the live reference, which is partially gated. Modeled operations carry `x-modeled: true`.'
+  title: Aurora Solar Webhooks API
+  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
   version: v2024.05
   contact:
     name: Aurora Solar Developer Platform
@@ -136,6 +133,23 @@ paths:
           $ref: '#/components/responses/NotFound'
 components:
   schemas:
+    WebhookInput:
+      type: object
+      required:
+      - url
+      - event_types
+      properties:
+        url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          description: Event types to subscribe to (for example design_request.completed).
+          items:
+            type: string
+        enabled:
+          type: boolean
+          default: true
     Webhook:
       allOf:
       - $ref: '#/components/schemas/WebhookInput'
@@ -161,30 +175,7 @@ components:
                 type: string
               detail:
                 type: string
-    WebhookInput:
-      type: object
-      required:
-      - url
-      - event_types
-      properties:
-        url:
-          type: string
-          format: uri
-        event_types:
-          type: array
-          description: Event types to subscribe to (for example design_request.completed).
-          items:
-            type: string
-        enabled:
-          type: boolean
-          default: true
   responses:
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid bearer token.
       content:
@@ -193,6 +184,12 @@ components:
             $ref: '#/components/schemas/Error'
     NotFound:
       description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
       content:
         application/json:
           schema:

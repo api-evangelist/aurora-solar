@@ -1,10 +1,7 @@
-openapi: 3.0.3
+openapi: 3.2.0
 info:
-  title: Aurora Solar Agreements Designs API
-  description: 'The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design. It is a tenant-scoped REST API: every resource lives under /tenants/{tenant_id}. Requests are authenticated with an API-key bearer token (Standard keys prefixed `sk_`, Restricted keys prefixed `rk_`; `sand_`/`prod_` denote the environment) passed as `Authorization: Bearer <token>`. The current API version is v2024.05, selected via the `Aurora-Version` request header.
-
-
-    Scope note: A handful of paths in this document are confirmed directly against Aurora''s public reference (List Projects, Create Design Request, Create Webhook). The remaining paths are HONESTLY MODELED from Aurora''s published operation catalog (docs.aurorasolar.com/llms.txt) following the same `/tenants/{tenant_id}/<resource>` convention; exact path segments for modeled operations should be reconciled against the live reference, which is partially gated. Modeled operations carry `x-modeled: true`.'
+  title: Aurora Solar Designs API
+  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
   version: v2024.05
   contact:
     name: Aurora Solar Developer Platform
@@ -196,29 +193,27 @@ paths:
           $ref: '#/components/responses/NotFound'
 components:
   schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-    DesignInput:
-      type: object
-      required:
-      - project_id
-      properties:
-        project_id:
-          type: string
-        name:
-          type: string
+    DesignRequest:
+      allOf:
+      - $ref: '#/components/schemas/DesignRequestInput'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          status:
+            type: string
+            enum:
+            - pending
+            - in_progress
+            - completed
+            - failed
+          design_id:
+            type: string
+            format: uuid
+          created_at:
+            type: string
+            format: date-time
     Design:
       allOf:
       - $ref: '#/components/schemas/DesignInput'
@@ -260,45 +255,37 @@ components:
         longitude:
           type: number
           format: double
-    DesignRequest:
-      allOf:
-      - $ref: '#/components/schemas/DesignRequestInput'
-      - type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          status:
-            type: string
-            enum:
-            - pending
-            - in_progress
-            - completed
-            - failed
-          design_id:
-            type: string
-            format: uuid
-          created_at:
-            type: string
-            format: date-time
-  parameters:
-    DesignId:
-      name: design_id
-      in: path
-      required: true
-      description: The design ID.
-      schema:
-        type: string
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
+    DesignInput:
+      type: object
+      required:
+      - project_id
+      properties:
+        project_id:
+          type: string
+        name:
+          type: string
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
   responses:
-    ValidationError:
-      description: The request payload failed validation.
+    RateLimited:
+      description: Rate limit exceeded (default 90 requests/minute). Inspect the `Retry-After` response header for when to retry.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
       content:
         application/json:
           schema:
@@ -315,17 +302,27 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Rate limit exceeded (default 90 requests/minute). Inspect the `Retry-After` response header for when to retry.
-      headers:
-        Retry-After:
-          description: Seconds to wait before retrying.
-          schema:
-            type: integer
+    ValidationError:
+      description: The request payload failed validation.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+    DesignId:
+      name: design_id
+      in: path
+      required: true
+      description: The design ID.
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http
