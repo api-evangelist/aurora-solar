@@ -171,24 +171,66 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      description: The project ID.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Rate limit exceeded (default 90 requests/minute). Inspect the `Retry-After` response header for when to retry.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
-    Project:
-      allOf:
-      - $ref: '#/components/schemas/ProjectInput'
-      - type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          tenant_id:
-            type: string
-            format: uuid
-          created_at:
-            type: string
-            format: date-time
-          updated_at:
-            type: string
-            format: date-time
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
     ProjectInput:
       type: object
       required:
@@ -219,65 +261,23 @@ components:
           type: array
           items:
             type: string
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-  responses:
-    RateLimited:
-      description: Rate limit exceeded (default 90 requests/minute). Inspect the `Retry-After` response header for when to retry.
-      headers:
-        Retry-After:
-          description: Seconds to wait before retrying.
-          schema:
-            type: integer
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
-    ProjectId:
-      name: project_id
-      in: path
-      required: true
-      description: The project ID.
-      schema:
-        type: string
+    Project:
+      allOf:
+      - $ref: '#/components/schemas/ProjectInput'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          tenant_id:
+            type: string
+            format: uuid
+          created_at:
+            type: string
+            format: date-time
+          updated_at:
+            type: string
+            format: date-time
   securitySchemes:
     bearerAuth:
       type: http

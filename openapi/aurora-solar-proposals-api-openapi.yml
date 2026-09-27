@@ -139,23 +139,41 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+    DesignId:
+      name: design_id
+      in: path
+      required: true
+      description: The design ID.
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   schemas:
-    Proposal:
-      allOf:
-      - $ref: '#/components/schemas/ProposalInput'
-      - type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          status:
-            type: string
-          web_url:
-            type: string
-            format: uri
-          created_at:
-            type: string
-            format: date-time
     ProposalInput:
       type: object
       required:
@@ -179,40 +197,22 @@ components:
                 type: string
               detail:
                 type: string
-  responses:
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
-    DesignId:
-      name: design_id
-      in: path
-      required: true
-      description: The design ID.
-      schema:
-        type: string
+    Proposal:
+      allOf:
+      - $ref: '#/components/schemas/ProposalInput'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          status:
+            type: string
+          web_url:
+            type: string
+            format: uri
+          created_at:
+            type: string
+            format: date-time
   securitySchemes:
     bearerAuth:
       type: http

@@ -95,39 +95,21 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 components:
-  schemas:
-    ConsumptionProfile:
-      type: object
-      properties:
-        project_id:
-          type: string
-        annual_consumption_kwh:
-          type: number
-          format: double
-        monthly_consumption_kwh:
-          type: array
-          items:
-            type: number
-            format: double
-        utility_rate_name:
-          type: string
-        source:
-          type: string
-          description: How the profile was derived (for example utility_bill or manual).
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      description: The project ID.
+      schema:
+        type: string
   responses:
     Unauthorized:
       description: Missing or invalid bearer token.
@@ -147,21 +129,39 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
-    ProjectId:
-      name: project_id
-      in: path
-      required: true
-      description: The project ID.
-      schema:
-        type: string
+  schemas:
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
+    ConsumptionProfile:
+      type: object
+      properties:
+        project_id:
+          type: string
+        annual_consumption_kwh:
+          type: number
+          format: double
+        monthly_consumption_kwh:
+          type: array
+          items:
+            type: number
+            format: double
+        utility_rate_name:
+          type: string
+        source:
+          type: string
+          description: How the profile was derived (for example utility_bill or manual).
   securitySchemes:
     bearerAuth:
       type: http

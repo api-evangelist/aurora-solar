@@ -101,6 +101,14 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
   responses:
     Unauthorized:
       description: Missing or invalid bearer token.
@@ -114,14 +122,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
   schemas:
     Error:
       type: object
