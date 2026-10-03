@@ -139,22 +139,13 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
-    DesignId:
-      name: design_id
-      in: path
-      required: true
-      description: The design ID.
-      schema:
-        type: string
   responses:
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid bearer token.
       content:
@@ -163,12 +154,6 @@ components:
             $ref: '#/components/schemas/Error'
     ValidationError:
       description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
       content:
         application/json:
           schema:
@@ -213,6 +198,21 @@ components:
           created_at:
             type: string
             format: date-time
+  parameters:
+    DesignId:
+      name: design_id
+      in: path
+      required: true
+      description: The design ID.
+      schema:
+        type: string
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
   securitySchemes:
     bearerAuth:
       type: http
