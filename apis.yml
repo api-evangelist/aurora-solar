@@ -242,6 +242,9 @@ apis:
   - type: APIReference
     url: https://docs.aurorasolar.com/reference/createwebhook
 common:
+- type: CapabilityMap
+  url: capabilities/aurora-solar-capability-edges.yml
+  name: Aurora Solar Business Capability Map
 - type: AgenticAccess
   url: agentic-access/aurora-solar-agentic-access.yml
 - type: DomainSecurity
