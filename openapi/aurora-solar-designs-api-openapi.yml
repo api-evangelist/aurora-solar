@@ -193,46 +193,6 @@ paths:
           $ref: '#/components/responses/NotFound'
 components:
   schemas:
-    DesignRequest:
-      allOf:
-      - $ref: '#/components/schemas/DesignRequestInput'
-      - type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          status:
-            type: string
-            enum:
-            - pending
-            - in_progress
-            - completed
-            - failed
-          design_id:
-            type: string
-            format: uuid
-          created_at:
-            type: string
-            format: date-time
-    DesignRequestInput:
-      type: object
-      required:
-      - project_id
-      properties:
-        project_id:
-          type: string
-        design_mode:
-          type: string
-          description: Design generation mode (for example manual or auto_designer).
-          enum:
-          - manual
-          - auto_designer
-        latitude:
-          type: number
-          format: double
-        longitude:
-          type: number
-          format: double
     Design:
       allOf:
       - $ref: '#/components/schemas/DesignInput'
@@ -269,6 +229,46 @@ components:
                 type: string
               detail:
                 type: string
+    DesignRequestInput:
+      type: object
+      required:
+      - project_id
+      properties:
+        project_id:
+          type: string
+        design_mode:
+          type: string
+          description: Design generation mode (for example manual or auto_designer).
+          enum:
+          - manual
+          - auto_designer
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+    DesignRequest:
+      allOf:
+      - $ref: '#/components/schemas/DesignRequestInput'
+      - type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+          status:
+            type: string
+            enum:
+            - pending
+            - in_progress
+            - completed
+            - failed
+          design_id:
+            type: string
+            format: uuid
+          created_at:
+            type: string
+            format: date-time
     DesignInput:
       type: object
       required:
@@ -278,9 +278,36 @@ components:
           type: string
         name:
           type: string
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      description: The tenant (organization) ID that owns the resource.
+      schema:
+        type: string
+    DesignId:
+      name: design_id
+      in: path
+      required: true
+      description: The design ID.
+      schema:
+        type: string
   responses:
     NotFound:
       description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid bearer token.
       content:
         application/json:
           schema:
@@ -296,33 +323,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  parameters:
-    DesignId:
-      name: design_id
-      in: path
-      required: true
-      description: The design ID.
-      schema:
-        type: string
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http

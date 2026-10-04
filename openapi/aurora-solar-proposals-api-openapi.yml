@@ -139,35 +139,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 components:
-  responses:
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   schemas:
-    ProposalInput:
-      type: object
-      required:
-      - design_id
-      properties:
-        design_id:
-          type: string
-        proposal_template_id:
-          type: string
     Error:
       type: object
       properties:
@@ -198,6 +170,34 @@ components:
           created_at:
             type: string
             format: date-time
+    ProposalInput:
+      type: object
+      required:
+      - design_id
+      properties:
+        design_id:
+          type: string
+        proposal_template_id:
+          type: string
+  responses:
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: The request payload failed validation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
   parameters:
     DesignId:
       name: design_id
