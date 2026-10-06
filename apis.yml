@@ -56,7 +56,7 @@ tags_raw:
 - Energy
 - Sales Software
 created: '2026-07-04'
-modified: '2026-07-04'
+modified: '2026-10-06'
 specificationVersion: '0.23'
 apis:
 - aid: aurora-solar:aurora-solar-agreements-api
@@ -242,6 +242,8 @@ apis:
   - type: APIReference
     url: https://docs.aurorasolar.com/reference/createwebhook
 common:
+- url: https://aurorasolar.com/blog/feed/
+  type: BlogRSS
 - type: CapabilityMap
   url: capabilities/aurora-solar-capability-edges.yml
   name: Aurora Solar Business Capability Map
