@@ -140,20 +140,6 @@ paths:
           $ref: '#/components/responses/NotFound'
 components:
   schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
     Proposal:
       allOf:
       - $ref: '#/components/schemas/ProposalInput'
@@ -170,6 +156,20 @@ components:
           created_at:
             type: string
             format: date-time
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              title:
+                type: string
+              detail:
+                type: string
     ProposalInput:
       type: object
       required:
@@ -180,8 +180,8 @@ components:
         proposal_template_id:
           type: string
   responses:
-    NotFound:
-      description: The requested resource was not found.
+    Unauthorized:
+      description: Missing or invalid bearer token.
       content:
         application/json:
           schema:
@@ -192,8 +192,8 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Unauthorized:
-      description: Missing or invalid bearer token.
+    NotFound:
+      description: The requested resource was not found.
       content:
         application/json:
           schema:
