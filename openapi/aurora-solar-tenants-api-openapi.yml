@@ -1,0 +1,199 @@
+openapi: 3.2.0
+info:
+  title: Sync Tenants API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Tenants
+paths:
+  /tenants/{id}:
+    get:
+      tags:
+      - Tenants
+      summary: Retrieve Tenant
+      description: Returns metadata about your tenant.
+      operationId: retrieveTenant
+      parameters:
+      - name: id
+        in: path
+        description: The ID of the tenant to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Tenant successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenant:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the tenant.
+                      name:
+                        type: string
+                        description: Organization name of the tenant.
+                        example: Aurora Solar
+                      account_status:
+                        type: string
+                        description: Current status of the tenant.
+                        example: active
+                      address:
+                        type: string
+                        example: 434 Brannan St, San Francisco, CA, USA
+                        description: Tenant's address.
+                      latitude:
+                        type: number
+                        format: double
+                        description: Latitude corresponding to tenant's address.
+                        example: 37.77960043
+                      longitude:
+                        type: number
+                        format: double
+                        description: Longitude corresponding to tenant's address.
+                        example: -122.39530086
+                      contact_name:
+                        type: string
+                        description: Name of tenant's primary contact person.
+                        example: Christopher Hopper
+                      contact_phone:
+                        type: string
+                        description: Phone number of tenant's primary contact person.
+                        example: (415) 509-6995
+                      contact_email:
+                        type: string
+                        format: email
+                        description: Email address of tenant's primary contact person.
+                        example: support@aurorasolar.com
+                      currency:
+                        type: string
+                        description: Default currency for the tenant (USD, CAD, EUR, etc.).
+                        example: USD
+                      project_statuses:
+                        type: array
+                        description: Possible statuses for projects in the tenant.
+                        items:
+                          type: string
+                        example:
+                        - Remote Assessment Completed
+                        - Engineering Design Completed
+                        - Permit Submitted
+                        - Permit Received
+                        - Ready for Installation
+                        - Completed
+                      temperature_unit:
+                        type: string
+                        enum:
+                        - F
+                        - C
+                        description: Default temperature unit for the tenant (F/C).
+                      units:
+                        type: string
+                        enum:
+                        - imperial
+                        - metric
+                        description: Default measurement units for the tenant (imperial/metric).
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

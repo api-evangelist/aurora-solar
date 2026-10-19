@@ -1,0 +1,2264 @@
+openapi: 3.2.0
+info:
+  title: Sync Users API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Users
+paths:
+  /tenants/{tenant_id}/users:
+    get:
+      tags:
+      - Users
+      summary: List Users
+      description: 'Returns a list of users.
+
+
+        ---
+
+
+        Users are returned sorted in descending order based on creation date.'
+      operationId: listUsers
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get users for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: email[]
+        in: query
+        description: The email address for the users to retrieve.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: external_provider_id[]
+        in: query
+        description: The external_provider_id for the users to retrieve.
+        schema:
+          type: array
+          items:
+            type: string
+      - name: partner_id[]
+        in: query
+        description: The partner_id for the users to retrieve.
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Users successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the user.
+                        first_name:
+                          type: string
+                          description: First name of the user.
+                          example: Christopher
+                        last_name:
+                          type: string
+                          description: Last name of the user.
+                          example: Hopper
+                        email:
+                          type: string
+                          format: email
+                          description: Email address of the user.
+                          example: support@aurorasolar.com
+                        account_status:
+                          type: string
+                          description: Status of the user.
+                          example: active
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    post:
+      tags:
+      - Users
+      summary: Create User
+      description: 'Create a new user using external SSO.
+
+
+        ---
+
+
+        User email has to be unique across the Aurora app.
+
+
+        Please note that in contrast to the Invite User endpoint this will not send the user an email to join the user. The created user account will hence not be able to set their password.
+
+
+        Creating a user without inviting them is a required step if you are using SSO through OpenID connect to authenticate the users before accessing Aurora''s application. This will allow your users to use Aurora without having to type in their username and password before doing so, but require you to run an OpenID Connect server (proving the Identity Provider functionality to Aurora). See OpenID Connect specification for more detail.
+
+
+        Please note that certain identity providers such as SalesForce, represent their user and organization IDs differently in the UI compared to what is sent in actual API requests. If you are using SalesForce as the identity provider with the OpenID Connect standard, please specify the long 18 character user and organization IDs when creating a user. See here for instructions on how to convert a 15 character ID to an 18 character one.'
+      operationId: createUser
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to create the user for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  description: User to create.
+                  required:
+                  - first_name
+                  - last_name
+                  - email
+                  - external_provider_id
+                  properties:
+                    first_name:
+                      type: string
+                      description: First name of the user.
+                      example: Joe
+                    last_name:
+                      type: string
+                      description: Last name of the user.
+                      example: Solar
+                    email:
+                      type: string
+                      format: email
+                      description: Email address of the user. Must be unique within the Aurora system.
+                      example: jsolar@aurorasolar.com
+                    phone:
+                      type: string
+                      description: Phone number of the user.
+                      example: (415) 360-9291
+                    title:
+                      type: string
+                      description: Job title of the user.
+                      example: Engineer
+                    job_function:
+                      type: string
+                      description: Job function of the user.
+                      enum:
+                      - executive_or_owner
+                      - it_or_business_systems_manager
+                      - project_manager
+                      - operations
+                      - engineering
+                      - canvasser_setter
+                      - marketing_manager
+                      - sales_representative
+                      - sales_manager
+                      - designer
+                      - design_manager
+                      - other
+                      example: executive_or_owner
+                    external_provider_id:
+                      type: string
+                      description: The full identifying URL identifying this user on the identity provider's system. Ex. "https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA"
+                      example: https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA
+                    role_id:
+                      type: string
+                      format: uuid
+                      description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                    team_ids:
+                      type: array
+                      description: IDs of teams in which the user is a member.
+                      items:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the team.
+                    partner_ids:
+                      type: array
+                      description: IDs of partners associated with the user.
+                      items:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the user.
+                    partner_id:
+                      type: string
+                      format: uuid
+                      description: Unique ID identifying the partner.
+                      deprecated: true
+                    locale:
+                      type: string
+                      format: locale
+                      description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                      example: en-US
+                    base_price_per_watt_max:
+                      type: number
+                      format: double
+                      description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 8.31
+                    base_price_per_watt_min:
+                      type: number
+                      format: double
+                      description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 1.72
+      responses:
+        '200':
+          description: User successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user.
+                      tenant_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the tenant that the user belongs to.
+                      first_name:
+                        type: string
+                        description: First name of the user.
+                        example: Joe
+                      last_name:
+                        type: string
+                        description: Last name of the user.
+                        example: Solar
+                      email:
+                        type: string
+                        format: email
+                        description: Email address of the user.
+                        example: jsolar@aurorasolar.com
+                      account_status:
+                        type: string
+                        description: Status of the user.
+                        example: active
+                      phone:
+                        type: string
+                        description: User's phone number
+                        example: (415) 360-9291
+                      title:
+                        type: string
+                        description: User's job title
+                        example: Engineer
+                      job_function:
+                        type: string
+                        description: Job function of the user.
+                        enum:
+                        - executive_or_owner
+                        - it_or_business_systems_manager
+                        - project_manager
+                        - operations
+                        - engineering
+                        - canvasser_setter
+                        - marketing_manager
+                        - sales_representative
+                        - sales_manager
+                        - designer
+                        - design_manager
+                        - other
+                        example: executive_or_owner
+                      external_provider_id:
+                        type: string
+                        description: The full identifying URL identifying this user on the identity providers sytem. Ex. "https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA"
+                        example: https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA
+                      role_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                      team_ids:
+                        type: array
+                        description: IDs of teams in which the user is a member.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the team.
+                      partner_ids:
+                        type: array
+                        description: IDs of partners associated with the user.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the user.
+                      partner_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the user.
+                        deprecated: true
+                      locale:
+                        type: string
+                        format: locale
+                        description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                        example: en-US
+                      base_price_per_watt_max:
+                        type: number
+                        format: double
+                        description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 8.31
+                      base_price_per_watt_min:
+                        type: number
+                        format: double
+                        description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 1.72
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/users/invite:
+    post:
+      tags:
+      - Users
+      summary: Invite User
+      description: 'Invite a new user using email.
+
+
+        ---
+
+
+        Sends an invite email with instructions to the new user.
+
+
+        You should call this endpoint over the Create User endpoint if you are intending for users to use a regular password to authentication flow on the regular Aurora application.'
+      operationId: inviteUser
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to invite the user to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  description: User to invite.
+                  required:
+                  - first_name
+                  - last_name
+                  - email
+                  properties:
+                    first_name:
+                      type: string
+                      description: First name of the user.
+                      example: Joe
+                    last_name:
+                      type: string
+                      description: Last name of the user.
+                      example: Solar
+                    email:
+                      type: string
+                      format: email
+                      description: Email address of the user. Must be unique within the Aurora system.
+                      example: jsolar@aurorasolar.com
+                    phone:
+                      type: string
+                      description: Phone number of the user.
+                      example: (415) 360-9291
+                    title:
+                      type: string
+                      description: Job title of the user.
+                      example: Engineer
+                    job_function:
+                      type: string
+                      description: Job function of the user.
+                      enum:
+                      - executive_or_owner
+                      - it_or_business_systems_manager
+                      - project_manager
+                      - operations
+                      - engineering
+                      - canvasser_setter
+                      - marketing_manager
+                      - sales_representative
+                      - sales_manager
+                      - designer
+                      - design_manager
+                      - other
+                      example: executive_or_owner
+                    role_id:
+                      type: string
+                      format: uuid
+                      description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                    team_ids:
+                      type: array
+                      description: IDs of teams in which the user is a member.
+                      items:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the team.
+                    partner_ids:
+                      type: array
+                      description: IDs of partners associated with the user.
+                      items:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the user.
+                    partner_id:
+                      type: string
+                      format: uuid
+                      description: Unique ID identifying the partner.
+                      deprecated: true
+                    locale:
+                      type: string
+                      format: locale
+                      description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                      example: en-US
+                    base_price_per_watt_max:
+                      type: number
+                      format: double
+                      description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 8.31
+                    base_price_per_watt_min:
+                      type: number
+                      format: double
+                      description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 1.72
+      responses:
+        '200':
+          description: User successfully invited.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user.
+                      tenant_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the tenant that the user belongs to.
+                      first_name:
+                        type: string
+                        description: First name of the user.
+                        example: Joe
+                      last_name:
+                        type: string
+                        description: Last name of the user.
+                        example: Solar
+                      email:
+                        type: string
+                        format: email
+                        description: Email address of the user.
+                        example: jsolar@aurorasolar.com
+                      account_status:
+                        type: string
+                        description: Status of the user.
+                        example: active
+                      phone:
+                        type: string
+                        description: User's phone number
+                        example: (415) 360-9291
+                      title:
+                        type: string
+                        description: User's job title
+                        example: Engineer
+                      job_function:
+                        type: string
+                        description: Job function of the user.
+                        enum:
+                        - executive_or_owner
+                        - it_or_business_systems_manager
+                        - project_manager
+                        - operations
+                        - engineering
+                        - canvasser_setter
+                        - marketing_manager
+                        - sales_representative
+                        - sales_manager
+                        - designer
+                        - design_manager
+                        - other
+                        example: executive_or_owner
+                      external_provider_id:
+                        type: string
+                        description: The full identifying URL identifying this user on the identity providers sytem. Ex. "https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA"
+                        example: https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA
+                      role_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                      team_ids:
+                        type: array
+                        description: IDs of teams in which the user is a member.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the team.
+                      partner_ids:
+                        type: array
+                        description: IDs of partners associated with the user.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the user.
+                      partner_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the user.
+                        deprecated: true
+                      locale:
+                        type: string
+                        format: locale
+                        description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                        example: en-US
+                      base_price_per_watt_max:
+                        type: number
+                        format: double
+                        description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 8.31
+                      base_price_per_watt_min:
+                        type: number
+                        format: double
+                        description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 1.72
+              example:
+                user:
+                  id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  tenant_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  first_name: Joe
+                  last_name: Solar
+                  email: jsolar@aurorasolar.com
+                  account_status: pending
+                  phone: (415) 360-9291
+                  title: Engineer
+                  job_function: engineering
+                  external_provider_id: null
+                  role_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  locale: en-US
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/users/{id}:
+    get:
+      tags:
+      - Users
+      summary: Retrieve User
+      description: Retrieve a user by ID.
+      operationId: retrieveUser
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the user is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the user to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: User successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user.
+                      tenant_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the tenant that the user belongs to.
+                      first_name:
+                        type: string
+                        description: First name of the user.
+                        example: Joe
+                      last_name:
+                        type: string
+                        description: Last name of the user.
+                        example: Solar
+                      email:
+                        type: string
+                        format: email
+                        description: Email address of the user.
+                        example: jsolar@aurorasolar.com
+                      account_status:
+                        type: string
+                        description: Status of the user.
+                        example: active
+                      phone:
+                        type: string
+                        description: User's phone number
+                        example: (415) 360-9291
+                      title:
+                        type: string
+                        description: User's job title
+                        example: Engineer
+                      job_function:
+                        type: string
+                        description: Job function of the user.
+                        enum:
+                        - executive_or_owner
+                        - it_or_business_systems_manager
+                        - project_manager
+                        - operations
+                        - engineering
+                        - canvasser_setter
+                        - marketing_manager
+                        - sales_representative
+                        - sales_manager
+                        - designer
+                        - design_manager
+                        - other
+                        example: executive_or_owner
+                      external_provider_id:
+                        type: string
+                        description: The full identifying URL identifying this user on the identity providers sytem. Ex. "https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA"
+                        example: https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA
+                      role_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                      team_ids:
+                        type: array
+                        description: IDs of teams in which the user is a member.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the team.
+                      partner_ids:
+                        type: array
+                        description: IDs of partners associated with the user.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the user.
+                      partner_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the user.
+                        deprecated: true
+                      locale:
+                        type: string
+                        format: locale
+                        description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                        example: en-US
+                      base_price_per_watt_max:
+                        type: number
+                        format: double
+                        description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 8.31
+                      base_price_per_watt_min:
+                        type: number
+                        format: double
+                        description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 1.72
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Users
+      summary: Update User
+      description: Update an existing user.
+      operationId: updateUser
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the user is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the user to update.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  description: User fields to update.
+                  properties:
+                    first_name:
+                      type: string
+                      description: First name of the user.
+                      example: Joe
+                    last_name:
+                      type: string
+                      description: Last name of the user.
+                      example: Solar
+                    email:
+                      type: string
+                      format: email
+                      description: Email address of the user. Must be unique within the Aurora system.
+                      example: jsolar@aurorasolar.com
+                    phone:
+                      type: string
+                      description: Phone number of the user.
+                      example: (415) 360-9291
+                    title:
+                      type: string
+                      description: Job title of the user.
+                      example: Engineer
+                    job_function:
+                      type: string
+                      description: Job function of the user.
+                      enum:
+                      - executive_or_owner
+                      - it_or_business_systems_manager
+                      - project_manager
+                      - operations
+                      - engineering
+                      - canvasser_setter
+                      - marketing_manager
+                      - sales_representative
+                      - sales_manager
+                      - designer
+                      - design_manager
+                      - other
+                      example: executive_or_owner
+                    external_provider_id:
+                      type: string
+                      description: The full identifying URL identifying this user on the identity provider's system. Ex. "https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA"
+                      example: https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA
+                    role_id:
+                      type: string
+                      format: uuid
+                      description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                      example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                    team_ids:
+                      type: array
+                      description: IDs of teams in which the user is a member.
+                      items:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the team.
+                    locale:
+                      type: string
+                      format: locale
+                      description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                      example: en-US
+                    base_price_per_watt_max:
+                      type: number
+                      format: double
+                      description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 8.31
+                    base_price_per_watt_min:
+                      type: number
+                      format: double
+                      description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 1.72
+      responses:
+        '200':
+          description: User successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user.
+                      tenant_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the tenant that the user belongs to.
+                      first_name:
+                        type: string
+                        description: First name of the user.
+                        example: Joe
+                      last_name:
+                        type: string
+                        description: Last name of the user.
+                        example: Solar
+                      email:
+                        type: string
+                        format: email
+                        description: Email address of the user.
+                        example: jsolar@aurorasolar.com
+                      account_status:
+                        type: string
+                        description: Status of the user.
+                        example: active
+                      phone:
+                        type: string
+                        description: User's phone number
+                        example: (415) 360-9291
+                      title:
+                        type: string
+                        description: User's job title
+                        example: Engineer
+                      job_function:
+                        type: string
+                        description: Job function of the user.
+                        enum:
+                        - executive_or_owner
+                        - it_or_business_systems_manager
+                        - project_manager
+                        - operations
+                        - engineering
+                        - canvasser_setter
+                        - marketing_manager
+                        - sales_representative
+                        - sales_manager
+                        - designer
+                        - design_manager
+                        - other
+                        example: executive_or_owner
+                      external_provider_id:
+                        type: string
+                        description: The full identifying URL identifying this user on the identity providers sytem. Ex. "https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA"
+                        example: https://test.salesforce.com/id/00556000000X3J3AFA/00540000001ulvMAEA
+                      role_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the user's role. Choose between IDs for the following global roles [`"Limited Team Member"`, `"Team Member"`, `"Admin"`] and any custom roles defined for the tenant. Defaults to the ID for `"Team Member"`. To view all available roles, see [List Roles](ref:listroles).
+                        example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                      team_ids:
+                        type: array
+                        description: IDs of teams in which the user is a member.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the team.
+                      partner_ids:
+                        type: array
+                        description: IDs of partners associated with the user.
+                        items:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the user.
+                      partner_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the user.
+                        deprecated: true
+                      locale:
+                        type: string
+                        format: locale
+                        description: User's preferred language and region using the ISO two-letter format. Defaults to tenant locale if not set.
+                        example: en-US
+                      base_price_per_watt_max:
+                        type: number
+                        format: double
+                        description: The maximum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt above this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 8.31
+                      base_price_per_watt_min:
+                        type: number
+                        format: double
+                        description: The minimum base price per watt for projects assigned to the user. Users will be alerted if they set a price per watt below this number. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 1.72
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/users/{id}/activate:
+    put:
+      tags:
+      - Users
+      summary: Activate User
+      description: 'Change a user''s status to `active`.
+
+
+        ---
+
+
+        Aurora App allows reusing emails of non-active users. If there is another user who is active and has the same email, this request will fail with reponse status of 422 (Unprocessable Entity) and appropriate error message.'
+      operationId: activateUser
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the user is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the user to activate.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: User successfully activated.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/users/{id}/deactivate:
+    put:
+      tags:
+      - Users
+      summary: Deactivate User
+      description: 'Change a user''s status to `deactivated`.
+
+
+        ---
+
+
+        This action will immediately log the deactivated user out of the Aurora App. For invited users, this also invalidates their invitation'
+      operationId: deactivateUser
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the user is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the user to deactivate.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: User successfully deactivated.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/roles:
+    get:
+      tags:
+      - Users
+      summary: List Roles
+      description: 'Returns a list of roles.
+
+
+        ---
+
+
+        Roles are returned sorted in ascending order with custom roles listed first if any exist, then ordered alphabetically by name.
+
+
+        For more on custom roles, see our Help Center.'
+      operationId: listRoles
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get roles for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Roles successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the role.
+                        name:
+                          type: string
+                          description: Name of the role.
+                          example: Team Member
+                        custom:
+                          type: boolean
+                          description: Whether or not the role is custom for the tenant. Global roles are derived from previously existing user levels and present for all tenants.
+                          example: false
+                        scope:
+                          type: string
+                          description: Represents the global level of access for managing projects, users, and teams in your organization and partners.
+                          example: assigned-only
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /tenants/{tenant_id}/sso_provider:
+    get:
+      tags:
+      - Users
+      summary: Retrieve SSO Provider
+      description: 'Retrieve the provider for Single Sign-On
+
+
+        ---
+
+
+        For more on SSO, see OpenID Connect specification and our tutorial.'
+      operationId: retrieveSsoProvider
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant the SSO Provider belongs to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: SSO Provider successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sso_provider:
+                    type: object
+                    properties:
+                      provider:
+                        type: string
+                        description: Name of provider used in URLs
+                        example: aurora_solar
+                      auth_uri:
+                        type: string
+                        description: Authorization URI
+                        example: https://login.foobar-sso-provider.com/services/oauth2/authorize
+                      token_uri:
+                        type: string
+                        description: URI that provides the access and id tokens
+                        example: https://login.foobar-sso-provider.com/services/oauth2/token
+                      openid_key:
+                        type: string
+                        description: Key used to authenticate with the `token_uri`
+                        example: 123
+                      openid_secret_last_four:
+                        type: string
+                        description: Last four characters of the secret used to authenticate with the `token_uri`
+                        example: abcd
+                      openid_discovery_doc_url:
+                        type: string
+                        description: Discovery document URL. Must contain a jwks_uri
+                        example: https://login.foobar-sso-provider.com/services/oauth2/.well-known/openid-configuration
+                      openid_base_url:
+                        type: string
+                        description: Base URL used to build SSO-enabled links. Contains `provider`
+                        example: https://app.aurorasolar.com/auth/openid/aurora_solar
+                      openid_callback_url:
+                        type: string
+                        description: Callback URL used to handle authorization code.  Contains `provider`. Must be added to the identity provider
+                        example: https://app.aurorasolar.com/auth/openid/aurora_solar/callback
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    post:
+      tags:
+      - Users
+      summary: Create SSO Provider
+      description: 'Setup the provider for Single Sign-On
+
+
+        ---
+
+
+        For more on SSO, see OpenID Connect specification and our tutorial.'
+      operationId: createSsoProvider
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant the SSO Provider belongs to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sso_provider:
+                  type: object
+                  description: SSO Provider to create
+                  required:
+                  - auth_uri
+                  - token_uri
+                  - openid_key
+                  - openid_secret
+                  - openid_discovery_doc_url
+                  properties:
+                    auth_uri:
+                      type: string
+                      description: Authorization URI
+                      example: https://login.foobar-sso-provider.com/services/oauth2/authorize
+                    token_uri:
+                      type: string
+                      description: URI that provides the access and id tokens
+                      example: https://login.foobar-sso-provider.com/services/oauth2/token
+                    openid_key:
+                      type: string
+                      description: Key used to authenticate with the `token_uri`
+                      example: 123
+                    openid_secret:
+                      type: string
+                      description: Secret used to authenticate with the `token_uri`
+                      example: abcde
+                    openid_discovery_doc_url:
+                      type: string
+                      description: Discovery document URL. Must contain a jwks_uri
+                      example: https://login.foobar-sso-provider.com/services/oauth2/.well-known/openid-configuration
+      responses:
+        '200':
+          description: SSO Provider successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sso_provider:
+                    type: object
+                    properties:
+                      provider:
+                        type: string
+                        description: Name of provider used in URLs
+                        example: aurora_solar
+                      auth_uri:
+                        type: string
+                        description: Authorization URI
+                        example: https://login.foobar-sso-provider.com/services/oauth2/authorize
+                      token_uri:
+                        type: string
+                        description: URI that provides the access and id tokens
+                        example: https://login.foobar-sso-provider.com/services/oauth2/token
+                      openid_key:
+                        type: string
+                        description: Key used to authenticate with the `token_uri`
+                        example: 123
+                      openid_secret_last_four:
+                        type: string
+                        description: Last four characters of the secret used to authenticate with the `token_uri`
+                        example: abcd
+                      openid_discovery_doc_url:
+                        type: string
+                        description: Discovery document URL. Must contain a jwks_uri
+                        example: https://login.foobar-sso-provider.com/services/oauth2/.well-known/openid-configuration
+                      openid_base_url:
+                        type: string
+                        description: Base URL used to build SSO-enabled links. Contains `provider`
+                        example: https://app.aurorasolar.com/auth/openid/aurora_solar
+                      openid_callback_url:
+                        type: string
+                        description: Callback URL used to handle authorization code.  Contains `provider`. Must be added to the identity provider
+                        example: https://app.aurorasolar.com/auth/openid/aurora_solar/callback
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Users
+      summary: Update SSO Provider
+      description: 'Update the provider for Single Sign-On
+
+
+        ---
+
+
+        For more on SSO, see OpenID Connect specification and our tutorial.'
+      operationId: updateSsoProvider
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant the SSO Provider belongs to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sso_provider:
+                  type: object
+                  description: SSO Provider fields to update
+                  properties:
+                    auth_uri:
+                      type: string
+                      description: Authorization URI
+                      example: https://login.foobar-sso-provider.com/services/oauth2/authorize
+                    token_uri:
+                      type: string
+                      description: URI that provides the access and id tokens
+                      example: https://login.foobar-sso-provider.com/services/oauth2/token
+                    openid_key:
+                      type: string
+                      description: Key used to authenticate with the `token_uri`
+                      example: 123
+                    openid_secret:
+                      type: string
+                      description: Secret used to authenticate with the `token_uri`
+                      example: abcde
+                    openid_discovery_doc_url:
+                      type: string
+                      description: Discovery document URL. Must contain a jwks_uri
+                      example: https://login.foobar-sso-provider.com/services/oauth2/.well-known/openid-configuration
+      responses:
+        '200':
+          description: SSO Provider successfully update.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sso_provider:
+                    type: object
+                    properties:
+                      provider:
+                        type: string
+                        description: Name of provider used in URLs
+                        example: aurora_solar
+                      auth_uri:
+                        type: string
+                        description: Authorization URI
+                        example: https://login.foobar-sso-provider.com/services/oauth2/authorize
+                      token_uri:
+                        type: string
+                        description: URI that provides the access and id tokens
+                        example: https://login.foobar-sso-provider.com/services/oauth2/token
+                      openid_key:
+                        type: string
+                        description: Key used to authenticate with the `token_uri`
+                        example: 123
+                      openid_secret_last_four:
+                        type: string
+                        description: Last four characters of the secret used to authenticate with the `token_uri`
+                        example: abcd
+                      openid_discovery_doc_url:
+                        type: string
+                        description: Discovery document URL. Must contain a jwks_uri
+                        example: https://login.foobar-sso-provider.com/services/oauth2/.well-known/openid-configuration
+                      openid_base_url:
+                        type: string
+                        description: Base URL used to build SSO-enabled links. Contains `provider`
+                        example: https://app.aurorasolar.com/auth/openid/aurora_solar
+                      openid_callback_url:
+                        type: string
+                        description: Callback URL used to handle authorization code.  Contains `provider`. Must be added to the identity provider
+                        example: https://app.aurorasolar.com/auth/openid/aurora_solar/callback
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

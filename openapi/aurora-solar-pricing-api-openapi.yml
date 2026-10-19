@@ -1,0 +1,2805 @@
+openapi: 3.2.0
+info:
+  title: Sync Pricing API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Pricing
+paths:
+  /tenants/{tenant_id}/designs/{id}/pricing:
+    get:
+      tags:
+      - Pricing
+      summary: Retrieve Design Pricing
+      description: Retrieve the pricing of a design.
+      operationId: retrieveDesignPricing
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the design to retrieve the pricing details for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Design Pricing successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pricing:
+                    type: object
+                    properties:
+                      pricing_method:
+                        type: string
+                        enum:
+                        - flat system price
+                        - price breakdown
+                        - price per watt
+                        description: How is the design priced, excluding storage, energy optimization, and heat pump products.
+                      flat_system_price:
+                        type: number
+                        format: double
+                        description: The flat price of the system, excluding storage, energy optimization, and heat pump products. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 5000
+                      price_per_watt:
+                        type: number
+                        format: double
+                        description: The price per watt of the system, excluding storage, energy optimization, and heat pump products. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 4.3
+                      storage_pricing_method:
+                        type: string
+                        enum:
+                        - flat system price
+                        - price breakdown
+                        description: How is the storage design priced.
+                      storage_flat_system_price:
+                        type: number
+                        format: double
+                        description: The flat price of the storage system. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 8000
+                      heat_pump_pricing_method:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - flat system price
+                        - price breakdown
+                        description: How the heat pump is priced. `null` when no heat pump is configured on the design.
+                      heat_pump_flat_system_price:
+                        type:
+                        - number
+                        - 'null'
+                        format: double
+                        description: The flat price of the heat pump system. `null` when no heat pump is configured on the design. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 8000
+                      energy_optimization_pricing_method:
+                        type: string
+                        enum:
+                        - price breakdown
+                        description: How the energy optimization components are priced.
+                      pricing_by_component:
+                        type: array
+                        description: The list of physical components which make up the base price of the system.
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: The name of the item.
+                              example: Aurora Sample Solar Panel
+                            manufacturer_name:
+                              type: string
+                              description: The name of the manufacturer. Only populated if the item is generated from a component.
+                              example: Aurora Sample Manufacturer
+                            component_id:
+                              type:
+                              - string
+                              - 'null'
+                              format: uuid
+                              description: The ID of the component. Use with `component_type` to identify the component. `null` when the item is not generated from a component.
+                              example: 8f3c1a20-6b4d-4e7a-9c15-2d8e0f4a6b31
+                            price:
+                              type: number
+                              format: double
+                              description: The price of the item.
+                              example: 196.35
+                            quantity:
+                              type: integer
+                              description: The number of items included.
+                              example: 11
+                            component_type:
+                              type: string
+                              description: Type of component i.e. [`"combiner_boxes"`, `"dc_optimizers"`, `"disconnects"`, `"inverters"`, `"load_centers"`, `"meters"`, `"microinverters"`, `"modules"`, `"service_panels"`, `"batteries"`, `"heat_pump_main_units"`]
+                              example: modules
+                      incentives:
+                        type: array
+                        description: All incentives applicable to the system.
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Unique ID identifying the incentive.
+                            name:
+                              type: string
+                              description: Name of the incentive.
+                              example: Solar PV Energy Tax Credit - Personal
+                            incentive_type:
+                              type: string
+                              enum:
+                              - pbi
+                              - cbi
+                              - fixed_amount
+                              description: Type of the incentive.
+                              example: cbi
+                            amount:
+                              type: number
+                              description: The value of the incentive, the unit depends on the incentive type. `pbi` are measured in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt. `cbi` are measured in percent of system price. `fixed_amount` are measured in the tenant's configured currency.
+                              example: 25
+                            disbursement:
+                              type: string
+                              enum:
+                              - tax_credit_rebate
+                              - cash_grant
+                              description: How is the incentive disbursed?
+                              example: tax_credit_rebate
+                            duration:
+                              type: number
+                              description: How many years is the incentive disbursed over?
+                              example: 10
+                            cap:
+                              type: number
+                              description: If provided, the amount the incentive payment is capped to. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 35000
+                            incentive_scope:
+                              type: string
+                              enum:
+                              - national
+                              - local
+                              description: The scope of the incentive.
+                              example: local
+                            apply_local_tax:
+                              type: boolean
+                              description: Should local tax be applied to the incentive?
+                            apply_national_tax:
+                              type: boolean
+                              description: Should national tax be applied to the incentive?
+                            system_size_basis:
+                              type: string
+                              enum:
+                              - ac
+                              - stc
+                              - ptc
+                              description: If the incentive is of type `pbi`, which size rating should be considered?
+                              example: stc
+                            year_applied:
+                              type: number
+                              description: Which year (relative to project life, starting with 0) will the incentive be applied in?
+                              example: null
+                      adders:
+                        type: array
+                        description: Adder and discount records. Includes solar, storage, and heat pump adders, plus percent adders and discounts for the net system cost. Each item is the adder record only, such as name, type, value, and `percentage_basis`. Calculated dollar amounts are not included here.
+                        items:
+                          allOf:
+                          - type: object
+                            properties:
+                              adder_name:
+                                type: string
+                                description: The name of the adder.
+                                example: Steep roof surcharge
+                              adder_value:
+                                type: number
+                                description: The value of the adder. The unit depends on the type — flat adders are denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`); system_size adders are denominated in the tenant's configured currency per unit of `adder_system_size_basis` (per watt for `stc`, `ptc`, `ac`, and `storage_ac`; per watt-hour for `capacity_nominal`, `capacity_usable`, and `capacity_usable_ac`); percent adders are a percentage.
+                                example: 1000
+                              quantity:
+                                type: number
+                                description: A multiplier for `adder_value`.
+                                example: 12.7
+                              is_discount:
+                                type: boolean
+                                description: Is this a discount?
+                                example: false
+                              is_editable:
+                                type: boolean
+                                description: Is `adder_value` editable on the Pricing page?
+                                example: false
+                              is_hidden:
+                                type: boolean
+                                description: Is the adder hidden from homeowners?
+                                example: false
+                              is_quantity_editable:
+                                type: boolean
+                                description: Is `quantity` editable on the Pricing page?
+                                example: false
+                              eligible_for_cbi:
+                                type: boolean
+                                description: Is the adder eligible for price based incentives like the federal ITC? Assumed to be true if not specified.
+                                example: true
+                              prevent_manual_deletion:
+                                type: boolean
+                                description: Prevent deletion of the adder on the Pricing page?
+                                example: false
+                              additional_charges:
+                                type: array
+                                description: Array of additional charges to apply to the adder.
+                                items:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the additional charge.
+                                      example: Processing Fee
+                                    percentage:
+                                      type: number
+                                      description: Percentage rate of the additional charge.
+                                      example: 2.5
+                                example: []
+                          - type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                                description: Unique ID identifying the adder.
+                              adder_template_id:
+                                type:
+                                - string
+                                - 'null'
+                                format: uuid
+                                description: Unique ID identifying the adder that this one was instantiated from. Can be used to match the same adder across designs.
+                              adder_type:
+                                type: string
+                                enum:
+                                - flat
+                                - system_size
+                                - percent
+                                description: The type of the adder.
+                                example: flat
+                              percentage_basis:
+                                type:
+                                - string
+                                - 'null'
+                                enum:
+                                - solar
+                                - storage
+                                - heat_pump
+                                - net_system_cost
+                                description: For a `percent` adder, the price the percent is applied to. `null` for other adder types.
+                                example: net_system_cost
+                              additional_charges:
+                                type: array
+                                description: Array of additional charges applied to the adder. Each charge includes the name and percentage rate.
+                                items:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the additional charge.
+                                      example: Processing Fee
+                                    percentage:
+                                      type: number
+                                      description: Percentage rate of the additional charge.
+                                      example: 2.5
+                                example: []
+                        example:
+                        - id: 6ffee90f-116f-470e-9593-8067b2ded44e
+                          adder_name: Steep roof surcharge
+                          adder_type: flat
+                          adder_value: 1000
+                          percentage_basis: null
+                          is_hidden: false
+                          additional_charges:
+                          - name: Processing Fee
+                            percentage: 2.5
+                          - name: Service Fee
+                            percentage: 1
+                      system_price_breakdown:
+                        type: array
+                        description: The breakdown of the system price, excluding storage and energy optimization products.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 72240
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 73240
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder. Only present for adders.
+                                    example: Steep roof surcharge
+                                  adder_total:
+                                    type: number
+                                    description: The base adder total without additional charges. Only present for adders.
+                                    example: 1000
+                                  additional_charges_total:
+                                    type: number
+                                    description: Sum of all additional charges applied to the adder. Only present for adders.
+                                    example: 35
+                                  total_with_additional_charges:
+                                    type: number
+                                    description: The adder total including additional charges (adder_total + additional_charges_total). Only present for adders.
+                                    example: 1035
+                                  additional_charges:
+                                    type: array
+                                    description: Array of additional charges applied to the adder. Only present for adders.
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the additional charge.
+                                          example: Processing Fee
+                                        percentage:
+                                          type: number
+                                          description: Percentage rate of the additional charge.
+                                          example: 2.5
+                                        amount:
+                                          type: number
+                                          description: Calculated amount of the additional charge.
+                                          example: 25
+                      storage_system_price_breakdown:
+                        type: array
+                        description: The breakdown of the storage system price.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7500
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7750
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder. Only present for adders.
+                                    example: Steep roof surcharge
+                                  adder_total:
+                                    type: number
+                                    description: The base adder total without additional charges. Only present for adders.
+                                    example: 1000
+                                  additional_charges_total:
+                                    type: number
+                                    description: Sum of all additional charges applied to the adder. Only present for adders.
+                                    example: 35
+                                  total_with_additional_charges:
+                                    type: number
+                                    description: The adder total including additional charges (adder_total + additional_charges_total). Only present for adders.
+                                    example: 1035
+                                  additional_charges:
+                                    type: array
+                                    description: Array of additional charges applied to the adder. Only present for adders.
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the additional charge.
+                                          example: Processing Fee
+                                        percentage:
+                                          type: number
+                                          description: Percentage rate of the additional charge.
+                                          example: 2.5
+                                        amount:
+                                          type: number
+                                          description: Calculated amount of the additional charge.
+                                          example: 25
+                      heat_pump_system_price_breakdown:
+                        type: array
+                        description: The breakdown of the heat pump system price. Empty when no heat pump is configured on the design.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 8000
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 8000
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                      energy_optimization_price_breakdown:
+                        type: array
+                        description: The breakdown of the energy optimization price.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7500
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7750
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder. Only present for adders.
+                                    example: Steep roof surcharge
+                                  adder_total:
+                                    type: number
+                                    description: The base adder total without additional charges. Only present for adders.
+                                    example: 1000
+                                  additional_charges_total:
+                                    type: number
+                                    description: Sum of all additional charges applied to the adder. Only present for adders.
+                                    example: 35
+                                  total_with_additional_charges:
+                                    type: number
+                                    description: The adder total including additional charges (adder_total + additional_charges_total). Only present for adders.
+                                    example: 1035
+                                  additional_charges:
+                                    type: array
+                                    description: Array of additional charges applied to the adder. Only present for adders.
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the additional charge.
+                                          example: Processing Fee
+                                        percentage:
+                                          type: number
+                                          description: Percentage rate of the additional charge.
+                                          example: 2.5
+                                        amount:
+                                          type: number
+                                          description: Calculated amount of the additional charge.
+                                          example: 25
+                      net_system_cost_price_breakdown:
+                        type: array
+                        description: Calculated totals for percent adders and discounts applied to the net system cost. `base_price` is the sum of the solar, storage, energy optimization, and heat pump prices through adders and discounts, before incentives, and is the amount those percents are calculated from. `adders` and `discounts` are the calculated totals; their `subcomponents` are the individual adders. These amounts are not included in `system_price` or `system_price_breakdown`.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: adders
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 1000
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 11000
+                            subcomponents:
+                              type: array
+                              description: Individual adders that make up the component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The calculated price of the adder, including additional charges.
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The price amount the percent was applied to.
+                                    example: 10000
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder.
+                                    example: Insurance rider
+                                  adder_total:
+                                    type: number
+                                    description: The calculated adder total without additional charges.
+                                    example: 1000
+                      system_price:
+                        type: number
+                        description: Total price of the system, including storage, energy optimization, and heat pump products. Does not include net system cost percent adders or discounts; those calculated amounts are in `net_system_cost_price_breakdown`. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 79740
+              examples:
+                flat_system_price:
+                  value:
+                    pricing:
+                      pricing_method: flat system price
+                      flat_system_price: 15000
+                      price_per_watt: 0
+                      storage_pricing_method: price breakdown
+                      storage_flat_system_price: 0
+                      pricing_by_component:
+                      - name: Sample 400W Module
+                        price: 1000
+                        quantity: 10
+                        manufacturer_name: Sample Module Manufacturer
+                        component_id: 8f3c1a20-6b4d-4e7a-9c15-2d8e0f4a6b31
+                        component_type: modules
+                      - name: Sample Microinverter
+                        price: 500
+                        quantity: 10
+                        manufacturer_name: Sample Microinverter Manufacturer
+                        component_id: 1a9e7c54-3d2b-4f68-a071-5e6c8b9d0f24
+                        component_type: microinverters
+                      - name: Aurora Sample AC Battery Pack
+                        price: 8000.0,
+                        quantity: 1.0,
+                        manufacturer_name: Sample Battery Manufacturer
+                        component_id: b7e2d918-4a05-4c36-8f59-0d1e2a3b4c65
+                        component_type: batteries
+                      - name: Aurora Sample AC Battery Pack
+                        price: 7025.0,
+                        quantity: 1.0,
+                        manufacturer_name: Sample Battery Manufacturer
+                        component_id: b7e2d918-4a05-4c36-8f59-0d1e2a3b4c65
+                        component_type: batteries
+                      adders:
+                      - id: 37f6fedb-5908-445d-a9a9-fc782d8ba7eb
+                        adder_name: Steep roof surcharge
+                        adder_value: 1000
+                        adder_type: flat
+                        percentage_basis: null
+                        quantity: 1
+                        adder_system_size_basis: stc
+                        is_discount: false
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: true
+                        eligible_for_cbi: false
+                        prevent_manual_deletion: false
+                      - id: 4b276e0e-9ba3-45a5-b4ea-6d2830eac317
+                        adder_name: Friendly homeowner discount
+                        adder_value: -25
+                        adder_type: flat
+                        percentage_basis: null
+                        quantity: 1
+                        adder_system_size_basis: stc
+                        is_discount: true
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: true
+                        eligible_for_cbi: false
+                        prevent_manual_deletion: false
+                      - id: a1c3e5f7-2b4d-4e6a-8c0d-1f2e3d4c5b6a
+                        adder_name: Insurance rider
+                        adder_value: 10
+                        adder_type: percent
+                        percentage_basis: net_system_cost
+                        quantity: null
+                        adder_system_size_basis: stc
+                        is_discount: false
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: false
+                        eligible_for_cbi: true
+                        prevent_manual_deletion: false
+                      incentives:
+                      - id: c2d4e6f8-1a3b-5c7d-9e0f-2a4b6c8d0e1f
+                        name: Federal ITC
+                        amount: 30
+                        incentive_type: cbi
+                        disbursement: tax_credit_rebate
+                        duration: null
+                        apply_local_tax: false
+                        apply_national_tax: false
+                        system_size_basis: null
+                        year_applied: null
+                        incentive_scope: national
+                        cap: 0
+                      system_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 1000
+                        cumulative_price: 1000
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 15000
+                        cumulative_price: 16000
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 1000
+                        cumulative_price: 17000
+                        subcomponents:
+                        - id: 37f6fedb-5908-445d-a9a9-fc782d8ba7eb
+                          item_price: 1000
+                          quantity: 1
+                      - item_type: discounts
+                        item_price: -25
+                        cumulative_price: 16975
+                        subcomponents:
+                        - id: 4b276e0e-9ba3-45a5-b4ea-6d2830eac317
+                          item_price: -25
+                          quantity: 1
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 16975
+                        subcomponents: []
+                      storage_system_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 15025
+                        cumulative_price: 15025
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 0
+                        cumulative_price: 15025
+                        subcomponents: []
+                      - item_type: discounts
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 15025
+                        subcomponents: []
+                      net_system_cost_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 32000
+                        cumulative_price: 32000
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 3200
+                        cumulative_price: 35200
+                        subcomponents:
+                        - id: a1c3e5f7-2b4d-4e6a-8c0d-1f2e3d4c5b6a
+                          adder_name: Insurance rider
+                          item_price: 3200
+                          adder_total: 3200
+                          quantity: 32000
+                      - item_type: discounts
+                        item_price: 0
+                        cumulative_price: 35200
+                        subcomponents: []
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 35200
+                        subcomponents: []
+                      system_price: 32000
+                price_breakdown:
+                  value:
+                    pricing:
+                      pricing_method: price breakdown
+                      flat_system_price: 0
+                      price_per_watt: 0
+                      storage_pricing_method: price breakdown
+                      storage_flat_system_price: 0
+                      pricing_by_component:
+                      - name: Sample 400W Panel
+                        price: 1000
+                        quantity: 10
+                        manufacturer_name: Sample Panel Manufacturer
+                        component_id: 8f3c1a20-6b4d-4e7a-9c15-2d8e0f4a6b31
+                        component_type: modules
+                      - name: Sample Microinverter
+                        price: 500
+                        quantity: 10
+                        manufacturer_name: Sample Microinverter Manufacturer
+                        component_id: 1a9e7c54-3d2b-4f68-a071-5e6c8b9d0f24
+                        component_type: microinverters
+                      - name: Aurora Sample AC Battery Pack
+                        price: 8000.0,
+                        quantity: 1.0,
+                        manufacturer_name: Sample Battery Manufacturer
+                        component_id: b7e2d918-4a05-4c36-8f59-0d1e2a3b4c65
+                        component_type: batteries
+                      - name: Aurora Sample AC Battery Pack
+                        price: 7025.0,
+                        quantity: 1.0,
+                        manufacturer_name: Sample Battery Manufacturer
+                        component_id: b7e2d918-4a05-4c36-8f59-0d1e2a3b4c65
+                        component_type: batteries
+                      adders:
+                      - id: 37f6fedb-5908-445d-a9a9-fc782d8ba7eb
+                        adder_name: Steep roof surcharge
+                        adder_value: 1000
+                        adder_type: flat
+                        percentage_basis: null
+                        quantity: 1
+                        adder_system_size_basis: stc
+                        is_discount: false
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: true
+                        eligible_for_cbi: false
+                        prevent_manual_deletion: false
+                      - id: 4b276e0e-9ba3-45a5-b4ea-6d2830eac317
+                        adder_name: Friendly homeowner discount
+                        adder_value: -25
+                        adder_type: flat
+                        percentage_basis: null
+                        quantity: 1
+                        adder_system_size_basis: stc
+                        is_discount: true
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: true
+                        eligible_for_cbi: false
+                        prevent_manual_deletion: false
+                      - id: a1c3e5f7-2b4d-4e6a-8c0d-1f2e3d4c5b6a
+                        adder_name: Insurance rider
+                        adder_value: 10
+                        adder_type: percent
+                        percentage_basis: net_system_cost
+                        quantity: null
+                        adder_system_size_basis: stc
+                        is_discount: false
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: false
+                        eligible_for_cbi: true
+                        prevent_manual_deletion: false
+                      incentives:
+                      - id: c2d4e6f8-1a3b-5c7d-9e0f-2a4b6c8d0e1f
+                        name: Federal ITC
+                        amount: 30
+                        incentive_type: cbi
+                        disbursement: tax_credit_rebate
+                        duration: null
+                        apply_local_tax: false
+                        apply_national_tax: false
+                        system_size_basis: null
+                        year_applied: null
+                        incentive_scope: national
+                        cap: 0
+                      system_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 1000
+                        cumulative_price: 1000
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 15000
+                        cumulative_price: 16000
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 1000
+                        cumulative_price: 17000
+                        subcomponents:
+                        - id: 37f6fedb-5908-445d-a9a9-fc782d8ba7eb
+                          item_price: 1000
+                          quantity: 1
+                      - item_type: discounts
+                        item_price: -25
+                        cumulative_price: 16975
+                        subcomponents:
+                        - id: 4b276e0e-9ba3-45a5-b4ea-6d2830eac317
+                          item_price: -25
+                          quantity: 1
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 16975
+                        subcomponents: []
+                      storage_system_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 15025
+                        cumulative_price: 15025
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 0
+                        cumulative_price: 15025
+                        subcomponents: []
+                      - item_type: discounts
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 15025
+                        subcomponents: []
+                      net_system_cost_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 32000
+                        cumulative_price: 32000
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 3200
+                        cumulative_price: 35200
+                        subcomponents:
+                        - id: a1c3e5f7-2b4d-4e6a-8c0d-1f2e3d4c5b6a
+                          adder_name: Insurance rider
+                          item_price: 3200
+                          adder_total: 3200
+                          quantity: 32000
+                      - item_type: discounts
+                        item_price: 0
+                        cumulative_price: 35200
+                        subcomponents: []
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 35200
+                        subcomponents: []
+                      system_price: 32000
+                price_per_watt:
+                  value:
+                    pricing:
+                      pricing_method: price per watt
+                      flat_system_price: 0
+                      price_per_watt: 2.5
+                      storage_pricing_method: price breakdown
+                      storage_flat_system_price: 0
+                      pricing_by_component:
+                      - name: Sample 400W Module
+                        price: 1000
+                        quantity: 10
+                        manufacturer_name: Sample Module Manufacturer
+                        component_id: 8f3c1a20-6b4d-4e7a-9c15-2d8e0f4a6b31
+                        component_type: modules
+                      - name: Sample Microinverter
+                        price: 500
+                        quantity: 10
+                        manufacturer_name: Sample Microinverter Manufacturer
+                        component_id: 1a9e7c54-3d2b-4f68-a071-5e6c8b9d0f24
+                        component_type: microinverters
+                      - name: Aurora Sample AC Battery Pack
+                        price: 8000.0,
+                        quantity: 1.0,
+                        manufacturer_name: Sample Battery Manufacturer
+                        component_id: b7e2d918-4a05-4c36-8f59-0d1e2a3b4c65
+                        component_type: batteries
+                      - name: Aurora Sample AC Battery Pack
+                        price: 7025.0,
+                        quantity: 1.0,
+                        manufacturer_name: Sample Battery Manufacturer
+                        component_id: b7e2d918-4a05-4c36-8f59-0d1e2a3b4c65
+                        component_type: batteries
+                      adders:
+                      - id: 37f6fedb-5908-445d-a9a9-fc782d8ba7eb
+                        adder_name: Steep roof surcharge
+                        adder_value: 1000
+                        adder_type: flat
+                        percentage_basis: null
+                        quantity: 1
+                        adder_system_size_basis: stc
+                        is_discount: false
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: true
+                        eligible_for_cbi: false
+                        prevent_manual_deletion: false
+                      - id: 4b276e0e-9ba3-45a5-b4ea-6d2830eac317
+                        adder_name: Friendly homeowner discount
+                        adder_value: -25
+                        adder_type: flat
+                        percentage_basis: null
+                        quantity: 1
+                        adder_system_size_basis: stc
+                        is_discount: true
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: true
+                        eligible_for_cbi: false
+                        prevent_manual_deletion: false
+                      - id: a1c3e5f7-2b4d-4e6a-8c0d-1f2e3d4c5b6a
+                        adder_name: Insurance rider
+                        adder_value: 10
+                        adder_type: percent
+                        percentage_basis: net_system_cost
+                        quantity: null
+                        adder_system_size_basis: stc
+                        is_discount: false
+                        is_editable: true
+                        is_hidden: false
+                        is_quantity_editable: false
+                        eligible_for_cbi: true
+                        prevent_manual_deletion: false
+                      incentives:
+                      - id: c2d4e6f8-1a3b-5c7d-9e0f-2a4b6c8d0e1f
+                        name: Federal ITC
+                        amount: 30
+                        incentive_type: cbi
+                        disbursement: tax_credit_rebate
+                        duration: null
+                        apply_local_tax: false
+                        apply_national_tax: false
+                        system_size_basis: null
+                        year_applied: null
+                        incentive_scope: national
+                        cap: 0
+                      system_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 1000
+                        cumulative_price: 1000
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 15000
+                        cumulative_price: 16000
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 1000
+                        cumulative_price: 17000
+                        subcomponents:
+                        - id: 37f6fedb-5908-445d-a9a9-fc782d8ba7eb
+                          item_price: 1000
+                          quantity: 1
+                      - item_type: discounts
+                        item_price: -25
+                        cumulative_price: 16975
+                        subcomponents:
+                        - id: 4b276e0e-9ba3-45a5-b4ea-6d2830eac317
+                          item_price: -25
+                          quantity: 1
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 16975
+                        subcomponents: []
+                      storage_system_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 15025
+                        cumulative_price: 15025
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 0
+                        cumulative_price: 15025
+                        subcomponents: []
+                      - item_type: discounts
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 15025
+                        subcomponents: []
+                      net_system_cost_price_breakdown:
+                      - item_type: starting_price
+                        item_price: 0
+                        cumulative_price: 0
+                        subcomponents: []
+                      - item_type: base_price
+                        item_price: 32000
+                        cumulative_price: 32000
+                        subcomponents: []
+                      - item_type: adders
+                        item_price: 3200
+                        cumulative_price: 35200
+                        subcomponents:
+                        - id: a1c3e5f7-2b4d-4e6a-8c0d-1f2e3d4c5b6a
+                          adder_name: Insurance rider
+                          item_price: 3200
+                          adder_total: 3200
+                          quantity: 32000
+                      - item_type: discounts
+                        item_price: 0
+                        cumulative_price: 35200
+                        subcomponents: []
+                      - item_type: incentives
+                        item_price: 0
+                        cumulative_price: 35200
+                        subcomponents: []
+                      system_price: 32000
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Pricing
+      summary: Update Design Pricing
+      description: Update pricing for an existing design.
+      operationId: updateDesignPricing
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the design to update pricing details for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pricing:
+                  type: object
+                  description: 'Pricing fields to update. At least one field must be provided. `flat_system_price`, `price_per_watt`, and `line_items` are mutually exclusive — provide one solar pricing field, not more than one. `line_items` sets per-component solar prices and sets the solar pricing mode to `price breakdown`. `storage_flat_system_price` and `storage_line_items` are mutually exclusive. Either storage field can be provided alone or alongside a solar pricing field. `heat_pump_flat_system_price` and `heat_pump_line_items` are mutually exclusive. Either heat pump field can be provided alone or alongside a solar or storage pricing field.
+
+                    '
+                  properties:
+                    flat_system_price:
+                      type: number
+                      description: Sets the flat system price for the design and sets the pricing mode to `flat system price`. Cannot be used with `price_per_watt` or `line_items`. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                      example: 40000
+                    price_per_watt:
+                      type: number
+                      description: Sets the price per watt for the design and sets the pricing mode to `price per watt`. Cannot be used with `flat_system_price` or `line_items`. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                      example: 1.99
+                    line_items:
+                      type: array
+                      description: 'Sets component unit prices in the design''s solar price breakdown and sets the solar pricing mode to `price breakdown`. Send one item or several. `component_id` must match an existing solar line item in the design. The submitted unit price replaces any existing quantity-based price tiers for that component. Cannot be used with `flat_system_price` or `price_per_watt`.
+
+                        '
+                      items:
+                        type: object
+                        required:
+                        - component_id
+                        - price
+                        properties:
+                          component_id:
+                            type: string
+                            format: uuid
+                            description: Solar component ID from `pricing_by_component`.
+                            example: 8f3c1a20-6b4d-4e7a-9c15-2d8e0f4a6b31
+                          price:
+                            type: number
+                            description: Price for one unit of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                            example: 350
+                    storage_flat_system_price:
+                      type: number
+                      description: Sets the flat system price for the storage design and sets the storage pricing mode to `flat system price`. Requires the design to have a storage design. Subject to the tenant's configured minimum/maximum storage flat price limits when set — a value outside those limits is rejected with a 422. Cannot be used with `storage_line_items`. Can be used alongside `flat_system_price`, `price_per_watt`, or `line_items`. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                      example: 8000
+                    storage_line_items:
+                      type: array
+                      description: 'Sets component unit prices in the storage price breakdown and sets the storage pricing mode to `price breakdown`. Send one item or several. `component_id` must match an existing storage line item. The submitted unit price replaces any existing quantity-based price tiers for that component. Requires the design to have a storage design. Cannot be used with `storage_flat_system_price`. Can be used alongside `flat_system_price`, `price_per_watt`, or `line_items`.
+
+                        '
+                      items:
+                        type: object
+                        required:
+                        - component_id
+                        - price
+                        properties:
+                          component_id:
+                            type: string
+                            format: uuid
+                            description: Storage component ID from `pricing_by_component`.
+                            example: 1a9e7c54-3d2b-4f68-a071-5e6c8b9d0f24
+                          price:
+                            type: number
+                            description: Price for one unit of the storage component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                            example: 8000
+                    heat_pump_flat_system_price:
+                      type: number
+                      description: Sets the flat system price for the heat pump and sets the heat pump pricing mode to `flat system price`. Requires the design to have a heat pump. Subject to the tenant's configured minimum/maximum heat pump flat price limits when set — a value outside those limits is rejected with a 422. Cannot be used with `heat_pump_line_items`. Can be used alongside a solar or storage pricing field. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                      example: 6000
+                    heat_pump_line_items:
+                      type: array
+                      description: 'Sets component unit prices in the heat pump price breakdown and sets the heat pump pricing mode to `price breakdown`. Send one item or several. `component_id` must match an existing heat pump line item. The submitted unit price replaces any existing quantity-based price tiers for that component. Requires the design to have a heat pump. Cannot be used with `heat_pump_flat_system_price`. Can be used alongside a solar or storage pricing field.
+
+                        '
+                      items:
+                        type: object
+                        required:
+                        - component_id
+                        - price
+                        properties:
+                          component_id:
+                            type: string
+                            format: uuid
+                            description: Heat pump component ID from `pricing_by_component`.
+                            example: 4c2b8e17-9a60-4d35-b8f2-1e7c0a9d5b46
+                          price:
+                            type: number
+                            description: Price for one unit of the heat pump component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                            example: 4500
+      responses:
+        '200':
+          description: Design Pricing successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pricing:
+                    type: object
+                    properties:
+                      pricing_method:
+                        type: string
+                        enum:
+                        - flat system price
+                        - price breakdown
+                        - price per watt
+                        description: How is the design priced, excluding storage, energy optimization, and heat pump products.
+                      flat_system_price:
+                        type: number
+                        format: double
+                        description: The flat price of the system, excluding storage, energy optimization, and heat pump products. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 5000
+                      price_per_watt:
+                        type: number
+                        format: double
+                        description: The price per watt of the system, excluding storage, energy optimization, and heat pump products. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt.
+                        example: 4.3
+                      storage_pricing_method:
+                        type: string
+                        enum:
+                        - flat system price
+                        - price breakdown
+                        description: How is the storage design priced.
+                      storage_flat_system_price:
+                        type: number
+                        format: double
+                        description: The flat price of the storage system. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 8000
+                      heat_pump_pricing_method:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - flat system price
+                        - price breakdown
+                        description: How the heat pump is priced. `null` when no heat pump is configured on the design.
+                      heat_pump_flat_system_price:
+                        type:
+                        - number
+                        - 'null'
+                        format: double
+                        description: The flat price of the heat pump system. `null` when no heat pump is configured on the design. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 8000
+                      energy_optimization_pricing_method:
+                        type: string
+                        enum:
+                        - price breakdown
+                        description: How the energy optimization components are priced.
+                      pricing_by_component:
+                        type: array
+                        description: The list of physical components which make up the base price of the system.
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: The name of the item.
+                              example: Aurora Sample Solar Panel
+                            manufacturer_name:
+                              type: string
+                              description: The name of the manufacturer. Only populated if the item is generated from a component.
+                              example: Aurora Sample Manufacturer
+                            component_id:
+                              type:
+                              - string
+                              - 'null'
+                              format: uuid
+                              description: The ID of the component. Use with `component_type` to identify the component. `null` when the item is not generated from a component.
+                              example: 8f3c1a20-6b4d-4e7a-9c15-2d8e0f4a6b31
+                            price:
+                              type: number
+                              format: double
+                              description: The price of the item.
+                              example: 196.35
+                            quantity:
+                              type: integer
+                              description: The number of items included.
+                              example: 11
+                            component_type:
+                              type: string
+                              description: Type of component i.e. [`"combiner_boxes"`, `"dc_optimizers"`, `"disconnects"`, `"inverters"`, `"load_centers"`, `"meters"`, `"microinverters"`, `"modules"`, `"service_panels"`, `"batteries"`, `"heat_pump_main_units"`]
+                              example: modules
+                      incentives:
+                        type: array
+                        description: All incentives applicable to the system.
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: Unique ID identifying the incentive.
+                            name:
+                              type: string
+                              description: Name of the incentive.
+                              example: Solar PV Energy Tax Credit - Personal
+                            incentive_type:
+                              type: string
+                              enum:
+                              - pbi
+                              - cbi
+                              - fixed_amount
+                              description: Type of the incentive.
+                              example: cbi
+                            amount:
+                              type: number
+                              description: The value of the incentive, the unit depends on the incentive type. `pbi` are measured in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per watt. `cbi` are measured in percent of system price. `fixed_amount` are measured in the tenant's configured currency.
+                              example: 25
+                            disbursement:
+                              type: string
+                              enum:
+                              - tax_credit_rebate
+                              - cash_grant
+                              description: How is the incentive disbursed?
+                              example: tax_credit_rebate
+                            duration:
+                              type: number
+                              description: How many years is the incentive disbursed over?
+                              example: 10
+                            cap:
+                              type: number
+                              description: If provided, the amount the incentive payment is capped to. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 35000
+                            incentive_scope:
+                              type: string
+                              enum:
+                              - national
+                              - local
+                              description: The scope of the incentive.
+                              example: local
+                            apply_local_tax:
+                              type: boolean
+                              description: Should local tax be applied to the incentive?
+                            apply_national_tax:
+                              type: boolean
+                              description: Should national tax be applied to the incentive?
+                            system_size_basis:
+                              type: string
+                              enum:
+                              - ac
+                              - stc
+                              - ptc
+                              description: If the incentive is of type `pbi`, which size rating should be considered?
+                              example: stc
+                            year_applied:
+                              type: number
+                              description: Which year (relative to project life, starting with 0) will the incentive be applied in?
+                              example: null
+                      adders:
+                        type: array
+                        description: Adder and discount records. Includes solar, storage, and heat pump adders, plus percent adders and discounts for the net system cost. Each item is the adder record only, such as name, type, value, and `percentage_basis`. Calculated dollar amounts are not included here.
+                        items:
+                          allOf:
+                          - type: object
+                            properties:
+                              adder_name:
+                                type: string
+                                description: The name of the adder.
+                                example: Steep roof surcharge
+                              adder_value:
+                                type: number
+                                description: The value of the adder. The unit depends on the type — flat adders are denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`); system_size adders are denominated in the tenant's configured currency per unit of `adder_system_size_basis` (per watt for `stc`, `ptc`, `ac`, and `storage_ac`; per watt-hour for `capacity_nominal`, `capacity_usable`, and `capacity_usable_ac`); percent adders are a percentage.
+                                example: 1000
+                              quantity:
+                                type: number
+                                description: A multiplier for `adder_value`.
+                                example: 12.7
+                              is_discount:
+                                type: boolean
+                                description: Is this a discount?
+                                example: false
+                              is_editable:
+                                type: boolean
+                                description: Is `adder_value` editable on the Pricing page?
+                                example: false
+                              is_hidden:
+                                type: boolean
+                                description: Is the adder hidden from homeowners?
+                                example: false
+                              is_quantity_editable:
+                                type: boolean
+                                description: Is `quantity` editable on the Pricing page?
+                                example: false
+                              eligible_for_cbi:
+                                type: boolean
+                                description: Is the adder eligible for price based incentives like the federal ITC? Assumed to be true if not specified.
+                                example: true
+                              prevent_manual_deletion:
+                                type: boolean
+                                description: Prevent deletion of the adder on the Pricing page?
+                                example: false
+                              additional_charges:
+                                type: array
+                                description: Array of additional charges to apply to the adder.
+                                items:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the additional charge.
+                                      example: Processing Fee
+                                    percentage:
+                                      type: number
+                                      description: Percentage rate of the additional charge.
+                                      example: 2.5
+                                example: []
+                          - type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                                description: Unique ID identifying the adder.
+                              adder_template_id:
+                                type:
+                                - string
+                                - 'null'
+                                format: uuid
+                                description: Unique ID identifying the adder that this one was instantiated from. Can be used to match the same adder across designs.
+                              adder_type:
+                                type: string
+                                enum:
+                                - flat
+                                - system_size
+                                - percent
+                                description: The type of the adder.
+                                example: flat
+                              percentage_basis:
+                                type:
+                                - string
+                                - 'null'
+                                enum:
+                                - solar
+                                - storage
+                                - heat_pump
+                                - net_system_cost
+                                description: For a `percent` adder, the price the percent is applied to. `null` for other adder types.
+                                example: net_system_cost
+                              additional_charges:
+                                type: array
+                                description: Array of additional charges applied to the adder. Each charge includes the name and percentage rate.
+                                items:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                      description: Name of the additional charge.
+                                      example: Processing Fee
+                                    percentage:
+                                      type: number
+                                      description: Percentage rate of the additional charge.
+                                      example: 2.5
+                                example: []
+                        example:
+                        - id: 6ffee90f-116f-470e-9593-8067b2ded44e
+                          adder_name: Steep roof surcharge
+                          adder_type: flat
+                          adder_value: 1000
+                          percentage_basis: null
+                          is_hidden: false
+                          additional_charges:
+                          - name: Processing Fee
+                            percentage: 2.5
+                          - name: Service Fee
+                            percentage: 1
+                      system_price_breakdown:
+                        type: array
+                        description: The breakdown of the system price, excluding storage and energy optimization products.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 72240
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 73240
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder. Only present for adders.
+                                    example: Steep roof surcharge
+                                  adder_total:
+                                    type: number
+                                    description: The base adder total without additional charges. Only present for adders.
+                                    example: 1000
+                                  additional_charges_total:
+                                    type: number
+                                    description: Sum of all additional charges applied to the adder. Only present for adders.
+                                    example: 35
+                                  total_with_additional_charges:
+                                    type: number
+                                    description: The adder total including additional charges (adder_total + additional_charges_total). Only present for adders.
+                                    example: 1035
+                                  additional_charges:
+                                    type: array
+                                    description: Array of additional charges applied to the adder. Only present for adders.
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the additional charge.
+                                          example: Processing Fee
+                                        percentage:
+                                          type: number
+                                          description: Percentage rate of the additional charge.
+                                          example: 2.5
+                                        amount:
+                                          type: number
+                                          description: Calculated amount of the additional charge.
+                                          example: 25
+                      storage_system_price_breakdown:
+                        type: array
+                        description: The breakdown of the storage system price.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7500
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7750
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder. Only present for adders.
+                                    example: Steep roof surcharge
+                                  adder_total:
+                                    type: number
+                                    description: The base adder total without additional charges. Only present for adders.
+                                    example: 1000
+                                  additional_charges_total:
+                                    type: number
+                                    description: Sum of all additional charges applied to the adder. Only present for adders.
+                                    example: 35
+                                  total_with_additional_charges:
+                                    type: number
+                                    description: The adder total including additional charges (adder_total + additional_charges_total). Only present for adders.
+                                    example: 1035
+                                  additional_charges:
+                                    type: array
+                                    description: Array of additional charges applied to the adder. Only present for adders.
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the additional charge.
+                                          example: Processing Fee
+                                        percentage:
+                                          type: number
+                                          description: Percentage rate of the additional charge.
+                                          example: 2.5
+                                        amount:
+                                          type: number
+                                          description: Calculated amount of the additional charge.
+                                          example: 25
+                      heat_pump_system_price_breakdown:
+                        type: array
+                        description: The breakdown of the heat pump system price. Empty when no heat pump is configured on the design.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 8000
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 8000
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                      energy_optimization_price_breakdown:
+                        type: array
+                        description: The breakdown of the energy optimization price.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: base_price
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7500
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price of the system up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 7750
+                            subcomponents:
+                              type: array
+                              description: Individual items that make up the price component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The price of the subcomponent (includes additional charges for adders).
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The quantity used in the price calculation for the adder/discount. The unit depends on the adder type.
+                                    example: 10
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder. Only present for adders.
+                                    example: Steep roof surcharge
+                                  adder_total:
+                                    type: number
+                                    description: The base adder total without additional charges. Only present for adders.
+                                    example: 1000
+                                  additional_charges_total:
+                                    type: number
+                                    description: Sum of all additional charges applied to the adder. Only present for adders.
+                                    example: 35
+                                  total_with_additional_charges:
+                                    type: number
+                                    description: The adder total including additional charges (adder_total + additional_charges_total). Only present for adders.
+                                    example: 1035
+                                  additional_charges:
+                                    type: array
+                                    description: Array of additional charges applied to the adder. Only present for adders.
+                                    items:
+                                      type: object
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the additional charge.
+                                          example: Processing Fee
+                                        percentage:
+                                          type: number
+                                          description: Percentage rate of the additional charge.
+                                          example: 2.5
+                                        amount:
+                                          type: number
+                                          description: Calculated amount of the additional charge.
+                                          example: 25
+                      net_system_cost_price_breakdown:
+                        type: array
+                        description: Calculated totals for percent adders and discounts applied to the net system cost. `base_price` is the sum of the solar, storage, energy optimization, and heat pump prices through adders and discounts, before incentives, and is the amount those percents are calculated from. `adders` and `discounts` are the calculated totals; their `subcomponents` are the individual adders. These amounts are not included in `system_price` or `system_price_breakdown`.
+                        items:
+                          type: object
+                          properties:
+                            item_type:
+                              type: string
+                              enum:
+                              - starting_price
+                              - base_price
+                              - adders
+                              - discounts
+                              - incentives
+                              description: The type of the price component.
+                              example: adders
+                            item_price:
+                              type: number
+                              description: The total price of the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 1000
+                            cumulative_price:
+                              type: number
+                              description: The cumulative price up to the component. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                              example: 11000
+                            subcomponents:
+                              type: array
+                              description: Individual adders that make up the component. Only populated if item_type is `adders` or `discounts`.
+                              items:
+                                type: object
+                                properties:
+                                  id:
+                                    type: string
+                                    format: uuid
+                                    description: Unique ID identifying the adder.
+                                  item_price:
+                                    type: number
+                                    description: The calculated price of the adder, including additional charges.
+                                    example: 1000
+                                  quantity:
+                                    type: number
+                                    description: The price amount the percent was applied to.
+                                    example: 10000
+                                  adder_name:
+                                    type: string
+                                    description: Name of the adder.
+                                    example: Insurance rider
+                                  adder_total:
+                                    type: number
+                                    description: The calculated adder total without additional charges.
+                                    example: 1000
+                      system_price:
+                        type: number
+                        description: Total price of the system, including storage, energy optimization, and heat pump products. Does not include net system cost percent adders or discounts; those calculated amounts are in `net_system_cost_price_breakdown`. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 79740
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/designs/{design_id}/pricing/adders:
+    post:
+      tags:
+      - Pricing
+      summary: Create Adder
+      description: Create a new adder or discount having a monetary value.
+      operationId: createAdder
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to create the adder for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to create the adder for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adder:
+                  allOf:
+                  - type: object
+                    properties:
+                      adder_name:
+                        type: string
+                        description: The name of the adder.
+                        example: Steep roof surcharge
+                      adder_value:
+                        type: number
+                        description: The value of the adder. The unit depends on the type — flat adders are denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`); system_size adders are denominated in the tenant's configured currency per unit of `adder_system_size_basis` (per watt for `stc`, `ptc`, `ac`, and `storage_ac`; per watt-hour for `capacity_nominal`, `capacity_usable`, and `capacity_usable_ac`); percent adders are a percentage.
+                        example: 1000
+                      quantity:
+                        type: number
+                        description: A multiplier for `adder_value`.
+                        example: 12.7
+                      is_discount:
+                        type: boolean
+                        description: Is this a discount?
+                        example: false
+                      is_editable:
+                        type: boolean
+                        description: Is `adder_value` editable on the Pricing page?
+                        example: false
+                      is_hidden:
+                        type: boolean
+                        description: Is the adder hidden from homeowners?
+                        example: false
+                      is_quantity_editable:
+                        type: boolean
+                        description: Is `quantity` editable on the Pricing page?
+                        example: false
+                      eligible_for_cbi:
+                        type: boolean
+                        description: Is the adder eligible for price based incentives like the federal ITC? Assumed to be true if not specified.
+                        example: true
+                      prevent_manual_deletion:
+                        type: boolean
+                        description: Prevent deletion of the adder on the Pricing page?
+                        example: false
+                      additional_charges:
+                        type: array
+                        description: Array of additional charges to apply to the adder.
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              description: Name of the additional charge.
+                              example: Processing Fee
+                            percentage:
+                              type: number
+                              description: Percentage rate of the additional charge.
+                              example: 2.5
+                        example: []
+                  - required:
+                    - adder_name
+                    - adder_value
+      responses:
+        '200':
+          description: Adder successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  adder:
+                    allOf:
+                    - type: object
+                      properties:
+                        adder_name:
+                          type: string
+                          description: The name of the adder.
+                          example: Steep roof surcharge
+                        adder_value:
+                          type: number
+                          description: The value of the adder. The unit depends on the type — flat adders are denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`); system_size adders are denominated in the tenant's configured currency per unit of `adder_system_size_basis` (per watt for `stc`, `ptc`, `ac`, and `storage_ac`; per watt-hour for `capacity_nominal`, `capacity_usable`, and `capacity_usable_ac`); percent adders are a percentage.
+                          example: 1000
+                        quantity:
+                          type: number
+                          description: A multiplier for `adder_value`.
+                          example: 12.7
+                        is_discount:
+                          type: boolean
+                          description: Is this a discount?
+                          example: false
+                        is_editable:
+                          type: boolean
+                          description: Is `adder_value` editable on the Pricing page?
+                          example: false
+                        is_hidden:
+                          type: boolean
+                          description: Is the adder hidden from homeowners?
+                          example: false
+                        is_quantity_editable:
+                          type: boolean
+                          description: Is `quantity` editable on the Pricing page?
+                          example: false
+                        eligible_for_cbi:
+                          type: boolean
+                          description: Is the adder eligible for price based incentives like the federal ITC? Assumed to be true if not specified.
+                          example: true
+                        prevent_manual_deletion:
+                          type: boolean
+                          description: Prevent deletion of the adder on the Pricing page?
+                          example: false
+                        additional_charges:
+                          type: array
+                          description: Array of additional charges to apply to the adder.
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the additional charge.
+                                example: Processing Fee
+                              percentage:
+                                type: number
+                                description: Percentage rate of the additional charge.
+                                example: 2.5
+                          example: []
+                    - type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the adder.
+                        adder_template_id:
+                          type:
+                          - string
+                          - 'null'
+                          format: uuid
+                          description: Unique ID identifying the adder that this one was instantiated from. Can be used to match the same adder across designs.
+                        adder_type:
+                          type: string
+                          enum:
+                          - flat
+                          - system_size
+                          - percent
+                          description: The type of the adder.
+                          example: flat
+                        percentage_basis:
+                          type:
+                          - string
+                          - 'null'
+                          enum:
+                          - solar
+                          - storage
+                          - heat_pump
+                          - net_system_cost
+                          description: For a `percent` adder, the price the percent is applied to. `null` for other adder types.
+                          example: net_system_cost
+                        additional_charges:
+                          type: array
+                          description: Array of additional charges applied to the adder. Each charge includes the name and percentage rate.
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the additional charge.
+                                example: Processing Fee
+                              percentage:
+                                type: number
+                                description: Percentage rate of the additional charge.
+                                example: 2.5
+                          example: []
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/adders/{adder_id}:
+    delete:
+      tags:
+      - Pricing
+      summary: Delete Adder
+      description: Delete an adder by ID.
+      operationId: deleteAdder
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to delete the adder for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adder_id
+        in: path
+        description: The ID of the adder to be deleted.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Adder successfully deleted.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/designs/{design_id}/pricing/incentives:
+    post:
+      tags:
+      - Pricing
+      summary: Create Incentive
+      description: Create a new flat incentive on a design.
+      operationId: createIncentive
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design belongs to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to create the incentive for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                incentive:
+                  allOf:
+                  - type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the incentive.
+                        example: State Rebate
+                      amount:
+                        type: number
+                        description: The value of the incentive. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                        example: 500
+                        exclusiveMinimum: 0
+                      year_applied:
+                        type:
+                        - integer
+                        - 'null'
+                        default: 0
+                        description: Which year (relative to project life, starting with 0) the incentive will be applied in. Year 0 incentives will reduce the financed amount for a cash or loan financing.
+                        example: 0
+                      incentive_scope:
+                        type: string
+                        enum:
+                        - national
+                        - local
+                        default: national
+                        description: The scope of the incentive.
+                        example: national
+                      apply_local_tax:
+                        type: boolean
+                        default: false
+                        description: Should local tax be applied to the incentive?
+                        example: false
+                      apply_national_tax:
+                        type: boolean
+                        default: false
+                        description: Should national tax be applied to the incentive?
+                        example: false
+                  - required:
+                    - name
+                    - amount
+      responses:
+        '200':
+          description: Incentive successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incentive:
+                    allOf:
+                    - type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the incentive.
+                          example: State Rebate
+                        amount:
+                          type: number
+                          description: The value of the incentive. Denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`).
+                          example: 500
+                          exclusiveMinimum: 0
+                        year_applied:
+                          type:
+                          - integer
+                          - 'null'
+                          default: 0
+                          description: Which year (relative to project life, starting with 0) the incentive will be applied in. Year 0 incentives will reduce the financed amount for a cash or loan financing.
+                          example: 0
+                        incentive_scope:
+                          type: string
+                          enum:
+                          - national
+                          - local
+                          default: national
+                          description: The scope of the incentive.
+                          example: national
+                        apply_local_tax:
+                          type: boolean
+                          default: false
+                          description: Should local tax be applied to the incentive?
+                          example: false
+                        apply_national_tax:
+                          type: boolean
+                          default: false
+                          description: Should national tax be applied to the incentive?
+                          example: false
+                    - type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the incentive.
+                        incentive_type:
+                          type: string
+                          enum:
+                          - fixed_amount
+                          description: The type of the incentive. Currently only flat (`fixed_amount`) incentives can be created via API.
+                          example: fixed_amount
+                        disbursement:
+                          type:
+                          - string
+                          - 'null'
+                          description: How the incentive is disbursed.
+                          example: null
+                        duration:
+                          type:
+                          - number
+                          - 'null'
+                          description: How many years the incentive is disbursed over.
+                          example: null
+                        system_size_basis:
+                          type:
+                          - string
+                          - 'null'
+                          description: Which size rating should be considered for size-based incentives.
+                          example: null
+                        cap:
+                          type: number
+                          description: The capped amount for the incentive. Denominated in the tenant's configured currency.
+                          example: 0
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/incentives/{incentive_id}:
+    delete:
+      tags:
+      - Pricing
+      summary: Delete Incentive
+      description: Delete an incentive by ID.
+      operationId: deleteIncentive
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the incentive belongs to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: incentive_id
+        in: path
+        description: The ID of the incentive to be deleted.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Incentive successfully deleted.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

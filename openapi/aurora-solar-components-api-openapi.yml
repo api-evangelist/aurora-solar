@@ -1,0 +1,973 @@
+openapi: 3.2.0
+info:
+  title: Sync Components API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Components
+paths:
+  /tenants/{tenant_id}/components/modules:
+    get:
+      tags:
+      - Components
+      summary: List Modules
+      description: List modules that are enabled for a tenant
+      operationId: listModules
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get modules for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page to return, 1-indexed (default `1`)
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        description: Number of items to return per page (default `50`, max `50`)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Modules successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The ID of the module.
+                        name:
+                          type: string
+                          description: The name of the module.
+                          example: Aurora Sample Module
+                        manufacturer:
+                          type: string
+                          description: The manufacturer of the module.
+                          example: Aurora Solar
+                        rating_stc:
+                          type:
+                          - number
+                          - 'null'
+                          description: The module's STC rating in watts.
+                          example: 350
+                        dimensions:
+                          type: object
+                          properties:
+                            length:
+                              type:
+                              - number
+                              - 'null'
+                              description: The length of the module in millimeters.
+                              example: 1
+                            width:
+                              type:
+                              - number
+                              - 'null'
+                              description: The width of the module in millimeters.
+                              example: 1
+                            height:
+                              type:
+                              - number
+                              - 'null'
+                              description: The height of the module in millimeters.
+                              example: 0.05
+                        weight:
+                          type:
+                          - number
+                          - 'null'
+                          description: The weight of the module in kilograms.
+                          example: 20
+                        spec_sheet_url:
+                          type:
+                          - string
+                          - 'null'
+                          description: A URL to the module's specification sheet.
+                          example: https://www.example.com/module-spec-sheet
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /tenants/{tenant_id}/components/modules/{module_id}:
+    get:
+      tags:
+      - Components
+      summary: Retrieve Module
+      description: Retrieve details on a module
+      operationId: retrieveModule
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get a module for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: module_id
+        in: path
+        description: The ID of the module to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Module successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The ID of the module.
+                  name:
+                    type: string
+                    description: The name of the module.
+                    example: Aurora Sample Module
+                  manufacturer:
+                    type: string
+                    description: The manufacturer of the module.
+                    example: Aurora Solar
+                  rating_stc:
+                    type:
+                    - number
+                    - 'null'
+                    description: The module's STC rating in watts.
+                    example: 350
+                  dimensions:
+                    type: object
+                    properties:
+                      length:
+                        type:
+                        - number
+                        - 'null'
+                        description: The length of the module in millimeters.
+                        example: 1
+                      width:
+                        type:
+                        - number
+                        - 'null'
+                        description: The width of the module in millimeters.
+                        example: 1
+                      height:
+                        type:
+                        - number
+                        - 'null'
+                        description: The height of the module in millimeters.
+                        example: 0.05
+                  weight:
+                    type:
+                    - number
+                    - 'null'
+                    description: The weight of the module in kilograms.
+                    example: 20
+                  spec_sheet_url:
+                    type:
+                    - string
+                    - 'null'
+                    description: A URL to the module's specification sheet.
+                    example: https://www.example.com/module-spec-sheet
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/components/inverters:
+    get:
+      tags:
+      - Components
+      summary: List Inverters
+      description: List inverters that are enabled for a tenant
+      operationId: listInverters
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get inverters for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page to return, 1-indexed (default `1`)
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        description: Number of items to return per page (default `50`, max `50`)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Inverters successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inverters:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The ID of the inverter.
+                        name:
+                          type: string
+                          description: The name of the inverter.
+                          example: Aurora Sample Inverter
+                        manufacturer:
+                          type: string
+                          description: The manufacturer of the inverter.
+                          example: Aurora Solar
+                        microinverter:
+                          type: boolean
+                          description: Whether the inverter is a microinverter.
+                          example: false
+                        nominal_output_voltage:
+                          type:
+                          - number
+                          - 'null'
+                          description: The nominal output voltage of the inverter in volts.
+                          example: 240
+                        rating_stc:
+                          type:
+                          - number
+                          - 'null'
+                          description: The inverter's STC rating in watts.
+                          example: 350
+                        cec_efficiency_pct:
+                          type:
+                          - number
+                          - 'null'
+                          description: The inverter's CEC efficiency percentage.
+                          example: 97
+                        weight:
+                          type:
+                          - number
+                          - 'null'
+                          description: The weight of the inverter in kilograms.
+                          example: 20
+                        spec_sheet_url:
+                          type:
+                          - string
+                          - 'null'
+                          description: A URL to the inverter's specification sheet.
+                          example: https://www.example.com/inverter-spec-sheet
+                        integrated_batteries:
+                          type: array
+                          description: Array of integrated batteries compatible with this inverter.
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                                description: The ID of the battery.
+                              name:
+                                type: string
+                                description: The name of the battery.
+                                example: Aurora Sample Battery
+                              nominal_capacity:
+                                type:
+                                - number
+                                - 'null'
+                                description: The nominal capacity of the battery in kWh.
+                                example: 13.5
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/components/inverters/{inverter_id}:
+    get:
+      tags:
+      - Components
+      summary: Retrieve Inverter
+      description: Retrieve details of an inverter
+      operationId: retrieveInverters
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get inverters for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: inverter_id
+        in: path
+        description: The ID of the inverter to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Inverter successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The ID of the inverter.
+                  name:
+                    type: string
+                    description: The name of the inverter.
+                    example: Aurora Sample Inverter
+                  manufacturer:
+                    type: string
+                    description: The manufacturer of the inverter.
+                    example: Aurora Solar
+                  microinverter:
+                    type: boolean
+                    description: Whether the inverter is a microinverter.
+                    example: false
+                  nominal_output_voltage:
+                    type:
+                    - number
+                    - 'null'
+                    description: The nominal output voltage of the inverter in volts.
+                    example: 240
+                  rating_stc:
+                    type:
+                    - number
+                    - 'null'
+                    description: The inverter's STC rating in watts.
+                    example: 350
+                  cec_efficiency_pct:
+                    type:
+                    - number
+                    - 'null'
+                    description: The inverter's CEC efficiency percentage.
+                    example: 97
+                  weight:
+                    type:
+                    - number
+                    - 'null'
+                    description: The weight of the inverter in kilograms.
+                    example: 20
+                  spec_sheet_url:
+                    type:
+                    - string
+                    - 'null'
+                    description: A URL to the inverter's specification sheet.
+                    example: https://www.example.com/inverter-spec-sheet
+                  integrated_batteries:
+                    type: array
+                    description: Array of integrated batteries compatible with this inverter.
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The ID of the battery.
+                        name:
+                          type: string
+                          description: The name of the battery.
+                          example: Aurora Sample Battery
+                        nominal_capacity:
+                          type:
+                          - number
+                          - 'null'
+                          description: The nominal capacity of the battery in kWh.
+                          example: 13.5
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /tenants/{tenant_id}/components/dc_optimizers:
+    get:
+      tags:
+      - Components
+      summary: List DC Optimizers
+      description: List DC optimizers that are enabled for a tenant
+      operationId: listDCOptimizers
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get DC optimizers for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page to return, 1-indexed (default `1`)
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        description: Number of items to return per page (default `50`, max `50`)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: DC optimizers successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dc_optimizers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The ID of the DC optimizer.
+                        name:
+                          type: string
+                          description: The name of the DC optimizer.
+                          example: Aurora Sample DC Optimizer
+                        manufacturer:
+                          type: string
+                          description: The manufacturer of the DC optimizer.
+                          example: Aurora Solar
+                        max_output_voltage:
+                          type:
+                          - number
+                          - 'null'
+                          description: The DC optimizer's maximum output voltage, in volts.
+                          example: 65
+                        efficiency_pct:
+                          type:
+                          - number
+                          - 'null'
+                          description: The DC optimizer's weighted efficiency percentage.
+                          example: 98
+                        efficiency_pct_max:
+                          type:
+                          - number
+                          - 'null'
+                          description: The DC optimizer's highest DC/DC conversion efficiency percentage.
+                          example: 99
+                        spec_sheet_url:
+                          type:
+                          - string
+                          - 'null'
+                          description: A URL to the DC optimizer's specification sheet.
+                          example: https://www.example.com/dc-optimizer-spec-sheet
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /tenants/{tenant_id}/components/dc_optimizers/{dc_optimizer_id}:
+    get:
+      tags:
+      - Components
+      summary: Retrieve DC Optimizer
+      description: Retrieve details on a DC optimizer
+      operationId: retrieveDcOptimizer
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get the DC optimizer for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: dc_optimizer_id
+        in: path
+        description: The ID of the DC optimizer to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: DC optimizer successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The ID of the DC optimizer.
+                  name:
+                    type: string
+                    description: The name of the DC optimizer.
+                    example: Aurora Sample DC Optimizer
+                  manufacturer:
+                    type: string
+                    description: The manufacturer of the DC optimizer.
+                    example: Aurora Solar
+                  max_output_voltage:
+                    type:
+                    - number
+                    - 'null'
+                    description: The DC optimizer's maximum output voltage, in volts.
+                    example: 65
+                  efficiency_pct:
+                    type:
+                    - number
+                    - 'null'
+                    description: The DC optimizer's weighted efficiency percentage.
+                    example: 98
+                  efficiency_pct_max:
+                    type:
+                    - number
+                    - 'null'
+                    description: The DC optimizer's highest DC/DC conversion efficiency percentage.
+                    example: 99
+                  spec_sheet_url:
+                    type:
+                    - string
+                    - 'null'
+                    description: A URL to the DC optimizer's specification sheet.
+                    example: https://www.example.com/dc-optimizer-spec-sheet
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

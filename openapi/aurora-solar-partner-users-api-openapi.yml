@@ -1,0 +1,293 @@
+openapi: 3.2.0
+info:
+  title: Sync Partner Users API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Partner Users
+paths:
+  /tenants/{tenant_id}/partners/{partner_id}/users:
+    post:
+      tags:
+      - Partner Users
+      summary: Add Users to Partner
+      description: Adds one or more users to a partner. Users newly added to the partner are removed from any tenant-level teams, and the tenant-level projects they own (projects not assigned to a partner) are moved into the partner, matching what happens when a user is added in the web app. Users who are already in the partner are unchanged.
+      operationId: addUsersToPartner
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - user_ids
+              properties:
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '201':
+          description: Users successfully added to partner.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  partner_id:
+                    type: string
+                    format: uuid
+                  user_ids:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+    put:
+      tags:
+      - Partner Users
+      summary: Update Partner Users
+      description: Sets the complete list of users for a partner. Users added by this call are handled as in Add Users to Partner. Users removed from the partner are removed from the partner's teams, and the projects they own in the partner are returned to the tenant level.
+      operationId: updatePartnerUsers
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: partner_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - user_ids
+              properties:
+                user_ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Partner users successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  partner_id:
+                    type: string
+                    format: uuid
+                  user_ids:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

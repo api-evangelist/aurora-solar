@@ -195,28 +195,6 @@ apis:
     url: https://docs.aurorasolar.com/reference/createdesignrequest
   - type: APIReference
     url: https://docs.aurorasolar.com/reference/createwebhook
-- aid: aurora-solar:aurora-solar-users-tenants-api
-  name: Aurora Solar Users & Tenants API
-  description: Tenant, users, roles, teams, and SSO.
-  humanURL: https://docs.aurorasolar.com/reference/listprojects
-  baseURL: https://api.aurorasolar.com
-  tags:
-  - Users & Tenants
-  properties:
-  - type: OpenAPI
-    url: openapi/aurora-solar-users-tenants-api-openapi.yml
-  - type: Documentation
-    url: https://docs.aurorasolar.com/reference/aurora-solar-api
-  - type: APIReference
-    url: https://docs.aurorasolar.com/reference/listprojects
-  - type: PostmanCollection
-    url: collections/aurora-solar.postman_collection.json
-  - type: OpenCollection
-    url: collections/aurora-solar.opencollection.json
-  - type: APIReference
-    url: https://docs.aurorasolar.com/reference/createdesignrequest
-  - type: APIReference
-    url: https://docs.aurorasolar.com/reference/createwebhook
 - aid: aurora-solar:aurora-solar-webhooks-api
   name: Aurora Solar Webhooks API
   description: Event notification subscriptions.
@@ -229,6 +207,490 @@ apis:
   properties:
   - type: OpenAPI
     url: openapi/aurora-solar-webhooks-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-ai-roof-api
+  name: Aurora Solar AI Roof API
+  description: The AI Roof API from Aurora Solar — 3 operation(s) for ai roof.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - AI Roof
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-ai-roof-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-bill-summaries-api
+  name: Aurora Solar Bill Summaries API
+  description: The Bill Summaries API from Aurora Solar — 2 operation(s) for bill summaries.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Bill Summaries
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-bill-summaries-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-cad-screenshot-api
+  name: Aurora Solar CAD Screenshot API
+  description: The CAD Screenshot API from Aurora Solar — 2 operation(s) for cad screenshot.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - CAD Screenshot
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-cad-screenshot-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-components-api
+  name: Aurora Solar Components API
+  description: The Components API from Aurora Solar — 6 operation(s) for components.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Components
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-components-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-design-assets-api
+  name: Aurora Solar Design Assets API
+  description: The Design Assets API from Aurora Solar — 2 operation(s) for design assets.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Design Assets
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-design-assets-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-design-requests-api
+  name: Aurora Solar Design Requests API
+  description: The Design Requests API from Aurora Solar — 3 operation(s) for design requests.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Design Requests
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-design-requests-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-lidar-status-api
+  name: Aurora Solar LIDAR Status API
+  description: The LIDAR Status API from Aurora Solar — 1 operation(s) for lidar status.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - LIDAR Status
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-lidar-status-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-milestones-api
+  name: Aurora Solar Milestones API
+  description: The Milestones API from Aurora Solar — 1 operation(s) for milestones.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Milestones
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-milestones-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-orders-api
+  name: Aurora Solar Orders API
+  description: The Orders API from Aurora Solar — 6 operation(s) for orders.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Orders
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-orders-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-partner-logo-api
+  name: Aurora Solar Partner Logo API
+  description: The Partner Logo API from Aurora Solar — 1 operation(s) for partner logo.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Partner Logo
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-partner-logo-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-partner-users-api
+  name: Aurora Solar Partner Users API
+  description: The Partner Users API from Aurora Solar — 1 operation(s) for partner users.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Partner Users
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-partner-users-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-partners-api
+  name: Aurora Solar Partners API
+  description: The Partners API from Aurora Solar — 2 operation(s) for partners.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Partners
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-partners-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-plan-sets-api
+  name: Aurora Solar Plan Sets API
+  description: The Plan Sets API from Aurora Solar — 3 operation(s) for plan sets.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Plan Sets
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-plan-sets-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-pricing-api
+  name: Aurora Solar Pricing API
+  description: The Pricing API from Aurora Solar — 5 operation(s) for pricing.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Pricing
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-pricing-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-project-notes-api
+  name: Aurora Solar Project Notes API
+  description: The Project Notes API from Aurora Solar — 2 operation(s) for project notes.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Project Notes
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-project-notes-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-shared-projects-api
+  name: Aurora Solar Shared Projects API
+  description: The Shared Projects API from Aurora Solar — 1 operation(s) for shared projects.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Shared Projects
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-shared-projects-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-site-surveys-api
+  name: Aurora Solar Site Surveys API
+  description: The Site Surveys API from Aurora Solar — 8 operation(s) for site surveys.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Site Surveys
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-site-surveys-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-teams-api
+  name: Aurora Solar Teams API
+  description: The Teams API from Aurora Solar — 1 operation(s) for teams.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Teams
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-teams-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-tenants-api
+  name: Aurora Solar Tenants API
+  description: The Tenants API from Aurora Solar — 1 operation(s) for tenants.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Tenants
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-tenants-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-users-api
+  name: Aurora Solar Users API
+  description: The Users API from Aurora Solar — 7 operation(s) for users.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Users
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-users-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-utility-bills-api
+  name: Aurora Solar Utility Bills API
+  description: The Utility Bills API from Aurora Solar — 4 operation(s) for utility bills.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Utility Bills
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-utility-bills-api-openapi.yml
+  - type: Documentation
+    url: https://docs.aurorasolar.com/reference/aurora-solar-api
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/listprojects
+  - type: PostmanCollection
+    url: collections/aurora-solar.postman_collection.json
+  - type: OpenCollection
+    url: collections/aurora-solar.opencollection.json
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createdesignrequest
+  - type: APIReference
+    url: https://docs.aurorasolar.com/reference/createwebhook
+- aid: aurora-solar:aurora-solar-versions-api
+  name: Aurora Solar Versions API
+  description: The Versions API from Aurora Solar — 3 operation(s) for versions.
+  humanURL: https://docs.aurorasolar.com/reference/listprojects
+  baseURL: https://api.aurorasolar.com
+  tags:
+  - Versions
+  properties:
+  - type: OpenAPI
+    url: openapi/aurora-solar-versions-api-openapi.yml
   - type: Documentation
     url: https://docs.aurorasolar.com/reference/aurora-solar-api
   - type: APIReference

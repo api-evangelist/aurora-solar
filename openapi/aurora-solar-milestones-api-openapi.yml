@@ -1,0 +1,123 @@
+openapi: 3.2.0
+info:
+  title: Sync Milestones API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Milestones
+paths:
+  /tenants/{tenant_id}/milestones/{milestone_id}/share:
+    post:
+      tags:
+      - Milestones
+      summary: Share Milestone
+      description: 'Shares a milestone with a third-party owner (TPO) provider.
+
+        The TPO tenant is determined based on the financing associated with the design the milestone belongs to.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of your tenant
+      - name: milestone_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the milestone to share
+      responses:
+        '200':
+          description: Successfully shared milestone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shared_milestone:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: The ID of the shared milestone
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the project associated with the milestone
+                      sending_tenant_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the tenant that shared the milestone
+                      receiving_tenant_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the tenant that received the shared milestone
+                      shared_at:
+                        type: string
+                        format: date-time
+                        description: The timestamp when the milestone was shared
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          description: Error message
+        '404':
+          description: Milestone not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          description: Error message
+        '422':
+          description: Unable to share milestone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          description: Error message
+      operationId: postTenantsByTenantIdMilestonesByMilestoneIdShare
+      x-operation-id-source: derived
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

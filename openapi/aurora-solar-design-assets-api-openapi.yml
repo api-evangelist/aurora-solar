@@ -1,0 +1,873 @@
+openapi: 3.2.0
+info:
+  title: Sync Design Assets API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Design Assets
+paths:
+  /tenants/{tenant_id}/designs/{design_id}/assets:
+    get:
+      tags:
+      - Design Assets
+      summary: List Design Assets
+      description: 'Retrieve the design assets for a design.
+
+
+        ---
+
+
+        Design Assets are returned sorted in descending order based on the taken_at timestamp.
+
+
+        Only design assets that are ready for download will be listed (i.e. design assets whose upload are still in progress will be omitted)'
+      operationId: listDesignAssets
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to retrieve the assets for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: asset_type[]
+        in: query
+        description: One or more asset types to be returned.
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - Design DXF
+            - CAD Screenshot
+            - CAD Auto Screenshot
+            - Site Survey Request Screenshot
+            - Racking Spec Sheet
+            - Racking Install Manual
+            - Racking Certification
+            - Racking CAD File
+            - Racking Engineering Report
+            - Racking Bill of Materials
+      responses:
+        '200':
+          description: Design Assets successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  assets:
+                    type: array
+                    description: List of all assets
+                    items:
+                      type: object
+                      allOf:
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            description: Unique ID identifying the asset.
+                          tenant_id:
+                            type: string
+                            format: uuid
+                            description: Unique ID identifying the tenant that the asset belongs to.
+                          user_id:
+                            type: string
+                            format: uuid
+                            description: Unique ID identifying the Aurora user who created the asset.
+                          project_id:
+                            type: string
+                            format: uuid
+                            description: Unique ID identifying the project that the asset belongs to.
+                          design_id:
+                            type: string
+                            format: uuid
+                            description: Unique ID identifying the design that the asset belongs to.
+                          url:
+                            type: string
+                            description: Raw URL of the file (asset). For assets of type `Design DXF` or `CAD Screenshot` the URL does not expire. For all other types, the URL expires after 24 hours and is refreshed on each request.
+                            example: http://some-host.com/some-path/file2.png
+                          filename:
+                            type:
+                            - string
+                            - 'null'
+                            description: Base name of the file with extension. Null unless file was uploaded via API.
+                            example: mounting_hardware_spec_sheet.pdf
+                          taken_at:
+                            type: string
+                            description: The timestamp of when the asset was taken/created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                            example: 2023-07-11 18:43:18 UTC
+                          options:
+                            type: object
+                            description: Set of key/value pairs containing display metadata regarding the asset. The presence of such a key is determined by the asset_type.
+                            properties:
+                              irradiance:
+                                type: boolean
+                                description: Does the asset contain the irradiance map?
+                              buildings:
+                                type: boolean
+                                description: Does the DXF file contain buildings?
+                              obstructions:
+                                type: boolean
+                                description: Does the DXF file contain obstructions?
+                              trees:
+                                type: boolean
+                                description: Does the DXF file contain trees?
+                              modules:
+                                type: boolean
+                                description: Does the DXF file contain modules?
+                              microinverters:
+                                type: boolean
+                                description: Does the DXF file contain microinverters?
+                              inverters:
+                                type: boolean
+                                description: Does the DXF file contain inverters?
+                              disconnects:
+                                type: boolean
+                                description: Does the DXF file contain disconnects?
+                              dc_optimizers:
+                                type: boolean
+                                description: Does the DXF file contain DC optimizers?
+                              bos:
+                                type: boolean
+                                description: Does the DXF file contain balance of system components?
+                              connections:
+                                type: boolean
+                                description: Does the DXF file contain connections?
+                              strings:
+                                type: boolean
+                                description: Does the DXF file contain strings?
+                              aerial_imagery:
+                                type: boolean
+                                description: Does the asset (CAD screenshot) contain aerial imagery (e.g. Nearmap or custom imagery)?
+                              azimuth:
+                                type: boolean
+                                description: Does the CAD screenshot contain azimuths?
+                              design_mode:
+                                type: string
+                                enum:
+                                - site
+                                - system
+                                description: Is the CAD screenshot of the `site` or of the `system`?
+                              lidar:
+                                type: boolean
+                                description: Does the CAD screenshot contain LiDAR?
+                              measurements:
+                                type: boolean
+                                description: Does the CAD screenshot contain measurements?
+                              panel_irradiance:
+                                type: boolean
+                                description: Does the CAD screenshot contain panel shading?
+                              project_location:
+                                type: boolean
+                                description: Does the CAD screenshot contain project location?
+                              site_irradiance:
+                                type: boolean
+                                description: Does the CAD screenshot contain irradiance map?
+                              system_items:
+                                type: boolean
+                                description: Does the CAD screenshot contain system items?
+                              rulers:
+                                type: boolean
+                                description: Does the CAD screenshot contain rulers?
+                              satellite:
+                                type: boolean
+                                description: Does the asset (CAD screenshot) contain the satellite imagery (e.g. Google or Bing imagery)?
+                              setbacks:
+                                type: boolean
+                                description: Does the asset (Design DXF, or CAD Screenshot) contain setbacks?
+                      - type: object
+                        properties:
+                          asset_type:
+                            type: string
+                            description: The type of the asset.
+                            enum:
+                            - Design DXF
+                            - CAD Screenshot
+                            - CAD Auto Screenshot
+                            - Site Survey Request Screenshot
+                            - Racking Spec Sheet
+                            - Racking Install Manual
+                            - Racking Certification
+                            - Racking CAD File
+                            - Racking Engineering Report
+                            - Racking Bill of Materials
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    post:
+      tags:
+      - Design Assets
+      summary: Create Design Asset
+      description: 'Create a new asset for a design.
+
+
+        ---
+
+
+        A design can have a number of images or documents such as installation instructions, data sheets or other supporting materials. An associated file can be a pdf, jpg, jpeg, png, gif, or webp file. Any other file formats will be rejected. The maximum size of an individual file is 25 MB. You may upload up to 20 assets per design. New assets will overwrite old assets with the same name and asset type, and new Racking Bill of Materials will always overwrite pre-existing ones, as only 1 is allowed per design.'
+      operationId: createDesignAsset
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to create the asset in.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to associate the asset with.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: asset_type
+        in: query
+        description: Describes the type of asset being uploaded.
+        required: true
+        schema:
+          type: string
+          enum:
+          - Racking Spec Sheet
+          - Racking Install Manual
+          - Racking Certification
+          - Racking CAD File
+          - Racking Engineering Report
+          - Racking Bill of Materials
+      - name: Content-Disposition
+        in: header
+        description: 'Describes the uploaded content, including the filename of the asset. Must follow format: ''attachment; filename="<file_name>.<file_extension>"'''
+        required: true
+        schema:
+          type: string
+        example: attachment; filename="racking_install.pdf"
+      requestBody:
+        description: File to upload, in binary format.
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          image/gif:
+            schema:
+              type: string
+              format: binary
+          image/webp:
+            schema:
+              type: string
+              format: binary
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        '200':
+          description: Asset successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asset:
+                    allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the asset.
+                        tenant_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the tenant that the asset belongs to.
+                        user_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the Aurora user who created the asset.
+                        project_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project that the asset belongs to.
+                        design_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the design that the asset belongs to.
+                        url:
+                          type: string
+                          description: Raw URL of the file (asset). For assets of type `Design DXF` or `CAD Screenshot` the URL does not expire. For all other types, the URL expires after 24 hours and is refreshed on each request.
+                          example: http://some-host.com/some-path/file2.png
+                        filename:
+                          type:
+                          - string
+                          - 'null'
+                          description: Base name of the file with extension. Null unless file was uploaded via API.
+                          example: mounting_hardware_spec_sheet.pdf
+                        taken_at:
+                          type: string
+                          description: The timestamp of when the asset was taken/created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        options:
+                          type: object
+                          description: Set of key/value pairs containing display metadata regarding the asset. The presence of such a key is determined by the asset_type.
+                          properties:
+                            irradiance:
+                              type: boolean
+                              description: Does the asset contain the irradiance map?
+                            buildings:
+                              type: boolean
+                              description: Does the DXF file contain buildings?
+                            obstructions:
+                              type: boolean
+                              description: Does the DXF file contain obstructions?
+                            trees:
+                              type: boolean
+                              description: Does the DXF file contain trees?
+                            modules:
+                              type: boolean
+                              description: Does the DXF file contain modules?
+                            microinverters:
+                              type: boolean
+                              description: Does the DXF file contain microinverters?
+                            inverters:
+                              type: boolean
+                              description: Does the DXF file contain inverters?
+                            disconnects:
+                              type: boolean
+                              description: Does the DXF file contain disconnects?
+                            dc_optimizers:
+                              type: boolean
+                              description: Does the DXF file contain DC optimizers?
+                            bos:
+                              type: boolean
+                              description: Does the DXF file contain balance of system components?
+                            connections:
+                              type: boolean
+                              description: Does the DXF file contain connections?
+                            strings:
+                              type: boolean
+                              description: Does the DXF file contain strings?
+                            aerial_imagery:
+                              type: boolean
+                              description: Does the asset (CAD screenshot) contain aerial imagery (e.g. Nearmap or custom imagery)?
+                            azimuth:
+                              type: boolean
+                              description: Does the CAD screenshot contain azimuths?
+                            design_mode:
+                              type: string
+                              enum:
+                              - site
+                              - system
+                              description: Is the CAD screenshot of the `site` or of the `system`?
+                            lidar:
+                              type: boolean
+                              description: Does the CAD screenshot contain LiDAR?
+                            measurements:
+                              type: boolean
+                              description: Does the CAD screenshot contain measurements?
+                            panel_irradiance:
+                              type: boolean
+                              description: Does the CAD screenshot contain panel shading?
+                            project_location:
+                              type: boolean
+                              description: Does the CAD screenshot contain project location?
+                            site_irradiance:
+                              type: boolean
+                              description: Does the CAD screenshot contain irradiance map?
+                            system_items:
+                              type: boolean
+                              description: Does the CAD screenshot contain system items?
+                            rulers:
+                              type: boolean
+                              description: Does the CAD screenshot contain rulers?
+                            satellite:
+                              type: boolean
+                              description: Does the asset (CAD screenshot) contain the satellite imagery (e.g. Google or Bing imagery)?
+                            setbacks:
+                              type: boolean
+                              description: Does the asset (Design DXF, or CAD Screenshot) contain setbacks?
+                    - type: object
+                      properties:
+                        asset_type:
+                          type: string
+                          description: The type of the asset. Ex. `"Racking Spec Sheet"`, `"Racking Install Manual"`, `"Racking Certification"`, etc.
+                          example: Racking Spec Sheet
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id, :design_id]'
+                    - message: 'Expected Content-Disposition header but it was missing or did not match format: ''attachment; filename="<file_name>.<file_extension>"'''
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: File extension .png does not match expected MIME type of image/jpeg
+                    - message: 'File format .heic is not supported. Accepted formats: [.jpg, .jpeg, .png, .gif, .webp, .pdf]'
+                    - message: File with size of 26.0 MB exceeds maximum allowed size of 25 MB.
+                    - message: File is empty.
+                    - message: Design already has 20 assets. You may not upload more than 20 assets per design.
+                    - message: Invalid asset_type.  Must be one of [`"Racking Spec Sheet"`, `"Racking Install Manual"`, `"Racking Certification"`, `"Racking CAD File"`, `"Racking Engineering Report"`, `"Racking Bill of Materials"`]
+                    - message: 'Missing required parameter: asset_type'
+  /tenants/{tenant_id}/designs/{design_id}/assets/{id}:
+    get:
+      tags:
+      - Design Assets
+      summary: Retrieve Design Asset
+      description: 'Retrieve a design asset by ID.
+
+
+        ---
+
+
+        Only design assets that are ready for download will be returned (i.e. design assets whose upload are still in progress will return 404)'
+      operationId: retrieveDesignAsset
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design asset is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to retrieve the asset for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the design asset to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Design asset successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  asset:
+                    type: object
+                    allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the asset.
+                        tenant_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the tenant that the asset belongs to.
+                        user_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the Aurora user who created the asset.
+                        project_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project that the asset belongs to.
+                        design_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the design that the asset belongs to.
+                        url:
+                          type: string
+                          description: Raw URL of the file (asset). For assets of type `Design DXF` or `CAD Screenshot` the URL does not expire. For all other types, the URL expires after 24 hours and is refreshed on each request.
+                          example: http://some-host.com/some-path/file2.png
+                        filename:
+                          type:
+                          - string
+                          - 'null'
+                          description: Base name of the file with extension. Null unless file was uploaded via API.
+                          example: mounting_hardware_spec_sheet.pdf
+                        taken_at:
+                          type: string
+                          description: The timestamp of when the asset was taken/created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        options:
+                          type: object
+                          description: Set of key/value pairs containing display metadata regarding the asset. The presence of such a key is determined by the asset_type.
+                          properties:
+                            irradiance:
+                              type: boolean
+                              description: Does the asset contain the irradiance map?
+                            buildings:
+                              type: boolean
+                              description: Does the DXF file contain buildings?
+                            obstructions:
+                              type: boolean
+                              description: Does the DXF file contain obstructions?
+                            trees:
+                              type: boolean
+                              description: Does the DXF file contain trees?
+                            modules:
+                              type: boolean
+                              description: Does the DXF file contain modules?
+                            microinverters:
+                              type: boolean
+                              description: Does the DXF file contain microinverters?
+                            inverters:
+                              type: boolean
+                              description: Does the DXF file contain inverters?
+                            disconnects:
+                              type: boolean
+                              description: Does the DXF file contain disconnects?
+                            dc_optimizers:
+                              type: boolean
+                              description: Does the DXF file contain DC optimizers?
+                            bos:
+                              type: boolean
+                              description: Does the DXF file contain balance of system components?
+                            connections:
+                              type: boolean
+                              description: Does the DXF file contain connections?
+                            strings:
+                              type: boolean
+                              description: Does the DXF file contain strings?
+                            aerial_imagery:
+                              type: boolean
+                              description: Does the asset (CAD screenshot) contain aerial imagery (e.g. Nearmap or custom imagery)?
+                            azimuth:
+                              type: boolean
+                              description: Does the CAD screenshot contain azimuths?
+                            design_mode:
+                              type: string
+                              enum:
+                              - site
+                              - system
+                              description: Is the CAD screenshot of the `site` or of the `system`?
+                            lidar:
+                              type: boolean
+                              description: Does the CAD screenshot contain LiDAR?
+                            measurements:
+                              type: boolean
+                              description: Does the CAD screenshot contain measurements?
+                            panel_irradiance:
+                              type: boolean
+                              description: Does the CAD screenshot contain panel shading?
+                            project_location:
+                              type: boolean
+                              description: Does the CAD screenshot contain project location?
+                            site_irradiance:
+                              type: boolean
+                              description: Does the CAD screenshot contain irradiance map?
+                            system_items:
+                              type: boolean
+                              description: Does the CAD screenshot contain system items?
+                            rulers:
+                              type: boolean
+                              description: Does the CAD screenshot contain rulers?
+                            satellite:
+                              type: boolean
+                              description: Does the asset (CAD screenshot) contain the satellite imagery (e.g. Google or Bing imagery)?
+                            setbacks:
+                              type: boolean
+                              description: Does the asset (Design DXF, or CAD Screenshot) contain setbacks?
+                    - type: object
+                      properties:
+                        asset_type:
+                          type: string
+                          description: The type of the asset.
+                          enum:
+                          - Design DXF
+                          - CAD Screenshot
+                          - CAD Auto Screenshot
+                          - Site Survey Request Screenshot
+                          - Racking Spec Sheet
+                          - Racking Install Manual
+                          - Racking Certification
+                          - Racking CAD File
+                          - Racking Engineering Report
+                          - Racking Bill of Materials
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

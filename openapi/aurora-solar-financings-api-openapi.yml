@@ -1,38 +1,69 @@
 openapi: 3.2.0
 info:
-  title: Aurora Solar Financings API
-  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
-  version: v2024.05
+  title: Sync Financings API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
   contact:
-    name: Aurora Solar Developer Platform
-    url: https://docs.aurorasolar.com
-  license:
-    name: Proprietary
-    url: https://aurorasolar.com/terms-of-service/
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
 servers:
-- url: https://api.aurorasolar.com
-  description: Production
 - url: https://api-sandbox.aurorasolar.com
-  description: Sandbox
+  description: Sandbox Environment
 security:
 - bearerAuth: []
 tags:
 - name: Financings
-  description: Financings and financier integrations.
 paths:
-  /tenants/{tenant_id}/financings:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
+  /tenants/{tenant_id}/designs/{design_id}/financings:
     get:
-      operationId: listFinancings
       tags:
       - Financings
-      summary: List financings
-      description: Lists financings for the tenant.
-      x-modeled: true
+      summary: List Financings
+      description: 'Returns a list of financings for a design.
+
+
+        ---
+
+
+        Financings are returned sorted in descending order based on creation date.'
+      operationId: listFinancings
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to retrieve the financings for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: financing_option
+        in: query
+        description: Only show specific financing types. Some financing attributes are only populated by specifying a valid financing type here.
+        schema:
+          type: string
+          enum:
+          - cash
+          - loans
+          - lease
+          - ppa
+          - levelized_ppa
+      - name: selected_in_sales_mode
+        in: query
+        description: Only shows the financings that was last selected in Sales Mode, when set to `"true"`.
+        schema:
+          type: string
+          enum:
+          - true
+          - false
       responses:
         '200':
-          description: A list of financings.
+          description: Financings successfully retrieved.
           content:
             application/json:
               schema:
@@ -41,118 +72,963 @@ paths:
                   financings:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Financing'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /tenants/{tenant_id}/financings/{financing_id}:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - name: financing_id
-      in: path
-      required: true
-      schema:
-        type: string
-    get:
-      operationId: retrieveFinancing
-      tags:
-      - Financings
-      summary: Retrieve a financing
-      description: Retrieves a financing by ID.
-      x-modeled: true
-      responses:
-        '200':
-          description: The requested financing.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Financing'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /tenants/{tenant_id}/financings/{financing_id}/push:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - name: financing_id
-      in: path
-      required: true
-      schema:
-        type: string
-    post:
-      operationId: pushFinancingToFinancier
-      tags:
-      - Financings
-      summary: Push financing to financier
-      description: Submits a financing to the configured financier/lender.
-      x-modeled: true
-      responses:
-        '200':
-          description: The push result.
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the financing.
+                        name:
+                          type: string
+                          description: Name of the financing.
+                          example: Default Financing
+                        selected_in_sales_mode:
+                          type: boolean
+                          description: Whether this financing was the one last selected in Aurora's Sales Mode.
+                        financing_option:
+                          type: string
+                          enum:
+                          - cash
+                          - loans
+                          - lease
+                          - ppa
+                          - levelized_ppa
+                          description: Type of financing.
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
-components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-    Financing:
-      type: object
-      properties:
-        id:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/designs/{design_id}/financings/{financing_id}:
+    get:
+      tags:
+      - Financings
+      summary: Retrieve Financing
+      description: Retrieve a financing by its ID.
+      operationId: retrieveFinancing
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
           type: string
           format: uuid
-        project_id:
+      - name: design_id
+        in: path
+        description: The ID of the design to retrieve the financings for.
+        required: true
+        schema:
           type: string
-        financier:
+          format: uuid
+      - name: financing_id
+        in: path
+        description: The ID of the financing itself.
+        required: true
+        schema:
           type: string
-        product:
+          format: uuid
+      responses:
+        '200':
+          description: Financing successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  financing:
+                    allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the financing.
+                        name:
+                          type: string
+                          description: Name of the financing.
+                          example: Default Financing
+                        selected_in_sales_mode:
+                          type: boolean
+                          description: Whether this financing was the one last selected in Aurora's Sales Mode.
+                        financing_option:
+                          type: string
+                          enum:
+                          - cash
+                          - loans
+                          - lease
+                          - ppa
+                          - levelized_ppa
+                          description: Type of financing.
+                    - type: object
+                      properties:
+                        project_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project that the financing belongs to.
+                        design_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the design that the financing belongs to.
+                        created_at:
+                          type: string
+                          description: The timestamp of when the financing was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        ran_at:
+                          type: string
+                          description: The timestamp of when the financing simulation for this financing was last run, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        up_to_date:
+                          type: boolean
+                          description: Whether the attributes calculated by financial simulation are up-to-date
+                        system_price:
+                          type: number
+                          description: Total price the customer pays; includes the principal, downpayment and incentive grants. Rounded to 2 decimal places.
+                          example: 12500
+                        total_system_cost_before_financing_adjustments:
+                          type: number
+                          description: System cost from design pricing only, before financing-layer adjustments. Rounded to 2 decimal places.
+                          example: 52499.46
+                        cashflow_discount_rate:
+                          type: number
+                          description: The interest rate (in %) used to compare future cashflows to present cashflows. Comes from the design's financing settings. Rounded to 4 decimal places.
+                          example: 3.2
+                        project_useful_life:
+                          type: number
+                          description: The expected life of the project in years. Comes from the design's financing settings.
+                          example: 30
+                        degradation_factor:
+                          type: number
+                          description: How less effective (in %) the system will be each year due to equipment degradation. For example, 99.5 value here means that the system will produce 0.5% less energy each subsequent year, compared to the previous one. Comes from the design's financing settings. Rounded to 4 decimal places.
+                          example: 99.5
+                        inverter_price_per_watt:
+                          type: number
+                          description: The price of replacing the inverter (in $ per watt of rated AC power). Comes from the design's financing settings. Rounded to 4 decimal places.
+                          example: 0.65
+                        inverter_life:
+                          type: number
+                          description: The expected number of years until the inverter needs to be replaced. Comes from the design's financing settings.
+                          example: 12
+                        year1_avoided_cost:
+                          type: array
+                          description: The post-solar bill savings in the first year.
+                          items:
+                            type: number
+                            description: Each month's savings in the first year in dollars. Rounded to 2 decimal places.
+                            example: 110.25
+                        lifetime_savings:
+                          type: number
+                          description: Total savings over the entire life of your solar project in today's dollars. Calculated by financial simulation. Rounded to 2 decimal places. Takes into account the price of the system, the discount rate, any down payments, loan payments, PPA payments, lease payments, utility bill savings, incentives, interest, operations and maintenance, and all financial costs and benefits of going solar.
+                          example: 46051.42
+                        annual_cashflows:
+                          type: array
+                          description: Yearly cashflows (in $) in and out as the customer owns their solar system. Calculated by financial simulation. Rounded to 2 decimal places.
+                          items:
+                            type: number
+                        incentive_values:
+                          type: array
+                          description: The value of all incentives applicable to the system over the entire life of your solar project. Calculated by financial simulation.
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the incentive.
+                                example: Solar PV Energy Tax Credit - Personal
+                              sum:
+                                type: number
+                                description: The sum of all disbursements of the incentive over the entire life of your solar project in today's dollars. Rounded to 2 decimal places.
+                                example: 2500
+                        payback_period:
+                          type: number
+                          description: Only populated if `financing_option` is `cash`. The amount of time (in years) it takes to cover the upfront system price with monthly savings. Calculated by financial simulation.
+                        loan_principal:
+                          type: number
+                          description: Only populated if `financing_option` is `loans`. Total loan taken in $. If there was no down payment, it will be equal to system price. Calculated by financial simulation. Rounded to 4 decimal places.
+                          example: 20000
+                        down_payment:
+                          type: number
+                          description: Only populated if `financing_option` is `loans`. Downpayment on the loan in $. Equals to `system_price - loan_principal`. Calculated by financial simulation. Rounded to 4 decimal places.
+                          example: 5000
+                        avg_monthly_savings:
+                          type: number
+                          description: Only populated if `financing_option`is `loans`. The average monthly savings over the lifetime of the system, in $. Calculated by financial simulation. Rounded to 2 decimal places.
+                          example: 43.66
+                        monthly_payment_first_month:
+                          type: number
+                          description: Only populated if `financing_option` is `loans`. First monthly payment on the loan in $ (Year 1, Month 1). Calculated by financial simulation. Rounded to 2 decimal places.
+                          example: 7.82
+                        loans:
+                          type: array
+                          description: Only populated if `financing_option` is `loans`. List of all loans in this financing (calculated by financial simulation)
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Loan name
+                                example: 20Y Mortgage Style Loan
+                              principal_percentage:
+                                type: number
+                                description: Loan's principal percentage (in %). Rounded to 4 decimal places.
+                                example: 20
+                              duration_months:
+                                type: number
+                                description: Full loan duration, including all periods, in months
+                                example: 240
+                              dealer_fee_percentage:
+                                type: number
+                                description: Loan's dealer fee.
+                                example: 5
+                              periods:
+                                type: array
+                                description: List of all periods in this loan
+                                items:
+                                  type: object
+                                  properties:
+                                    duration_months:
+                                      type: number
+                                      description: this period duration in months
+                                      example: 24
+                                    interest_rate:
+                                      type: number
+                                      description: interest rate for this period in %. Rounded to 4 decimal places.
+                                      example: 2.4
+                        epc_price_per_watt:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The price per watt paid to the EPC/installer. Rounded to 3 decimal places.
+                          example: 4.235
+                        escalation:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The percent by which the `monthly_payment` (`lease`) or `solar_rate` (`ppa`) increases each year. Rounded to 2 decimal places.
+                          example: 2.99
+                        monthly_payment:
+                          type: number
+                          description: 'Only populated if `financing_option` is `loans`, `lease`, `ppa`, or `levelized_ppa`. Rounded to 2 decimal places.
+
+                            Loans - the first non-zero payment.
+
+                            Lease - The monthly payment during the first year of a lease.
+
+                            PPA - The estimated monthly payment during the first year of a PPA.
+
+                            Levelized PPA - The estimated monthly payment during the first year of a levelized PPA.
+
+                            '
+                        solar_rate:
+                          type: number
+                          description: Only populated if `financing_option` is `ppa` or `levelized_ppa`. The price paid by the homeowner per kWh of production. Rounded to 3 decimal places.
+                          example: 0.165
+                        specific_yield:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The specific yield (efficiency) of the design expressed in kWh/kWp. Calculated based on the performance simulation and used to help select values for `monthly_payment` (advanced lease) or `solar_rate` (advanced PPA). Rounded to 4 decimal places.
+                          example: 1378.3861
+                        upfront_payment:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The upfront payment prior to getting solar installed. Rounded to 2 decimal places.
+                          example: 4999.99
+                        prepaid_lease_factor:
+                          type: number
+                          description: The lease factor for a prepaid lease. Only populated for financings associated with Participate Energy. Rounded to 7 decimal places.
+                          example: 1.5384615
+                        financier:
+                          type:
+                          - object
+                          - 'null'
+                          description: Information about the financier associated with this financing. Populated for both integrated and custom financier-backed financings.
+                          properties:
+                            type:
+                              type: string
+                              description: Whether this financing uses an integrated or custom financier.
+                              enum:
+                              - integrated
+                              - custom
+                              example: integrated
+                            provider:
+                              type: string
+                              description: 'Identifier for the financial institution. For integrated financiers, this is the integration code of the financier: `dividend` (Dividend), `enfin` (EnFin), `loanpal` (GoodLeap, which kept the integration code of its former LoanPal brand), `palmetto` (Palmetto LightReach), `sungage` (Sungage), `sunlight` (Sunlight Financial), or `mosaic` (Mosaic, returned only for financings created before that integration was retired). For custom financiers, this is the custom financier name.'
+                              example: loanpal
+                            status:
+                              type:
+                              - string
+                              - 'null'
+                              description: Current state of the financing request. Only populated for integrated financiers.
+                              enum:
+                              - created
+                              - canceled
+                              - quoted
+                              - failed_to_be_quoted
+                              - submitted
+                              - pre_approved
+                              - rejected
+                              example: quoted
+                            approved_loan_amount:
+                              type:
+                              - number
+                              - 'null'
+                              description: The maximum amount of money approved for a loan. Only populated for integrated financiers.
+                              example: 100000
+                            external:
+                              type:
+                              - object
+                              - 'null'
+                              description: Values as they exist with the financial institution. Only populated for integrated financiers.
+                              properties:
+                                provider_status:
+                                  type: string
+                                  description: The state of the financing request as retrieved from the provider before it is normalized to a fixed set of values for the `status`. These can differ between lenders.
+                                  example: funded
+                                request_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. Dividend - Project ID. EnFin - Application ID. GoodLeap TPO - Credit Application ID. Mosaic - Application ID. Sungage - Sungage ID. Unused by GoodLeap Loans, LightReach.
+                                  example: 627209b8-48e7-4dc9-a4d0-a790156086c7
+                                consumer_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. LightReach - Account ID. Unused by Dividend, EnFin, GoodLeap Loans, GoodLeap TPO, Mosaic, Sungage.
+                                  example: 21ba23d5-60b8-4078-a58c-56e7948bcc78
+                                quote_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. LightReach - Quote ID. Mosaic - Offer ID. Unused by Dividend, EnFin, GoodLeap Loans, GoodLeap TPO, Sungage.
+                                  example: 64ec9870-6cfc-4a36-8235-bea8cfbd46b8
+                                estimate_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. Mosaic - Estimate ID. Unused by Dividend, EnFin, GoodLeap Loans, GoodLeap TPO, LightReach, Sungage.
+                                  example: b1b3b1b3-1b3b-1b3b-1b3b-1b3b1b3b1b3b
+                                contract_signed_at:
+                                  type: string
+                                  format: date-time
+                                  description: Timestamp when the contract was signed, as reported by the financier. Only populated for GoodLeap and LightReach when a contract signed event is received. Formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                                  example: 2023-07-11 18:43:18 UTC
+                            domestic_content_indicated:
+                              type:
+                              - boolean
+                              - 'null'
+                              description: Whether domestic content was indicated for this financing. Only populated for integrated financiers.
+                            created_at:
+                              type:
+                              - string
+                              - 'null'
+                              format: date-time
+                              description: Timestamp when the financing request was created in UTC. Only populated for integrated financiers.
+                            updated_at:
+                              type:
+                              - string
+                              - 'null'
+                              format: date-time
+                              description: Timestamp when the financing request was updated in UTC. Only populated for integrated financiers.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/designs/{design_id}/financings/{financing_id}/push_to_financier:
+    post:
+      tags:
+      - Financings
+      summary: Push Financing to Financier
+      description: Push the current state of a financing to a financier. Currently only some Mosaic products are supported for which this will create an Estimate object in Mosaic. This is a one-way operation and the financing will not be updated with any changes made in Mosaic. The returned financing will contain the Estimate ID.
+      operationId: pushFinancingToFinancier
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
           type: string
-        amount:
-          type: number
-          format: double
-        status:
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design the financing belongs to.
+        required: true
+        schema:
           type: string
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
+          format: uuid
+      - name: financing_id
+        in: path
+        description: The ID of the financing itself.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Financing successfully pushed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  financing:
+                    allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the financing.
+                        name:
+                          type: string
+                          description: Name of the financing.
+                          example: Default Financing
+                        selected_in_sales_mode:
+                          type: boolean
+                          description: Whether this financing was the one last selected in Aurora's Sales Mode.
+                        financing_option:
+                          type: string
+                          enum:
+                          - cash
+                          - loans
+                          - lease
+                          - ppa
+                          - levelized_ppa
+                          description: Type of financing.
+                    - type: object
+                      properties:
+                        project_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project that the financing belongs to.
+                        design_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the design that the financing belongs to.
+                        created_at:
+                          type: string
+                          description: The timestamp of when the financing was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        ran_at:
+                          type: string
+                          description: The timestamp of when the financing simulation for this financing was last run, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        up_to_date:
+                          type: boolean
+                          description: Whether the attributes calculated by financial simulation are up-to-date
+                        system_price:
+                          type: number
+                          description: Total price the customer pays; includes the principal, downpayment and incentive grants. Rounded to 2 decimal places.
+                          example: 12500
+                        total_system_cost_before_financing_adjustments:
+                          type: number
+                          description: System cost from design pricing only, before financing-layer adjustments. Rounded to 2 decimal places.
+                          example: 52499.46
+                        cashflow_discount_rate:
+                          type: number
+                          description: The interest rate (in %) used to compare future cashflows to present cashflows. Comes from the design's financing settings. Rounded to 4 decimal places.
+                          example: 3.2
+                        project_useful_life:
+                          type: number
+                          description: The expected life of the project in years. Comes from the design's financing settings.
+                          example: 30
+                        degradation_factor:
+                          type: number
+                          description: How less effective (in %) the system will be each year due to equipment degradation. For example, 99.5 value here means that the system will produce 0.5% less energy each subsequent year, compared to the previous one. Comes from the design's financing settings. Rounded to 4 decimal places.
+                          example: 99.5
+                        inverter_price_per_watt:
+                          type: number
+                          description: The price of replacing the inverter (in $ per watt of rated AC power). Comes from the design's financing settings. Rounded to 4 decimal places.
+                          example: 0.65
+                        inverter_life:
+                          type: number
+                          description: The expected number of years until the inverter needs to be replaced. Comes from the design's financing settings.
+                          example: 12
+                        year1_avoided_cost:
+                          type: array
+                          description: The post-solar bill savings in the first year.
+                          items:
+                            type: number
+                            description: Each month's savings in the first year in dollars. Rounded to 2 decimal places.
+                            example: 110.25
+                        lifetime_savings:
+                          type: number
+                          description: Total savings over the entire life of your solar project in today's dollars. Calculated by financial simulation. Rounded to 2 decimal places. Takes into account the price of the system, the discount rate, any down payments, loan payments, PPA payments, lease payments, utility bill savings, incentives, interest, operations and maintenance, and all financial costs and benefits of going solar.
+                          example: 46051.42
+                        annual_cashflows:
+                          type: array
+                          description: Yearly cashflows (in $) in and out as the customer owns their solar system. Calculated by financial simulation. Rounded to 2 decimal places.
+                          items:
+                            type: number
+                        incentive_values:
+                          type: array
+                          description: The value of all incentives applicable to the system over the entire life of your solar project. Calculated by financial simulation.
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Name of the incentive.
+                                example: Solar PV Energy Tax Credit - Personal
+                              sum:
+                                type: number
+                                description: The sum of all disbursements of the incentive over the entire life of your solar project in today's dollars. Rounded to 2 decimal places.
+                                example: 2500
+                        payback_period:
+                          type: number
+                          description: Only populated if `financing_option` is `cash`. The amount of time (in years) it takes to cover the upfront system price with monthly savings. Calculated by financial simulation.
+                        loan_principal:
+                          type: number
+                          description: Only populated if `financing_option` is `loans`. Total loan taken in $. If there was no down payment, it will be equal to system price. Calculated by financial simulation. Rounded to 4 decimal places.
+                          example: 20000
+                        down_payment:
+                          type: number
+                          description: Only populated if `financing_option` is `loans`. Downpayment on the loan in $. Equals to `system_price - loan_principal`. Calculated by financial simulation. Rounded to 4 decimal places.
+                          example: 5000
+                        avg_monthly_savings:
+                          type: number
+                          description: Only populated if `financing_option`is `loans`. The average monthly savings over the lifetime of the system, in $. Calculated by financial simulation. Rounded to 2 decimal places.
+                          example: 43.66
+                        monthly_payment_first_month:
+                          type: number
+                          description: Only populated if `financing_option` is `loans`. First monthly payment on the loan in $ (Year 1, Month 1). Calculated by financial simulation. Rounded to 2 decimal places.
+                          example: 7.82
+                        loans:
+                          type: array
+                          description: Only populated if `financing_option` is `loans`. List of all loans in this financing (calculated by financial simulation)
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: Loan name
+                                example: 20Y Mortgage Style Loan
+                              principal_percentage:
+                                type: number
+                                description: Loan's principal percentage (in %). Rounded to 4 decimal places.
+                                example: 20
+                              duration_months:
+                                type: number
+                                description: Full loan duration, including all periods, in months
+                                example: 240
+                              dealer_fee_percentage:
+                                type: number
+                                description: Loan's dealer fee.
+                                example: 5
+                              periods:
+                                type: array
+                                description: List of all periods in this loan
+                                items:
+                                  type: object
+                                  properties:
+                                    duration_months:
+                                      type: number
+                                      description: this period duration in months
+                                      example: 24
+                                    interest_rate:
+                                      type: number
+                                      description: interest rate for this period in %. Rounded to 4 decimal places.
+                                      example: 2.4
+                        epc_price_per_watt:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The price per watt paid to the EPC/installer. Rounded to 3 decimal places.
+                          example: 4.235
+                        escalation:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The percent by which the `monthly_payment` (`lease`) or `solar_rate` (`ppa`) increases each year. Rounded to 2 decimal places.
+                          example: 2.99
+                        monthly_payment:
+                          type: number
+                          description: 'Only populated if `financing_option` is `loans`, `lease`, `ppa`, or `levelized_ppa`. Rounded to 2 decimal places.
+
+                            Loans - the first non-zero payment.
+
+                            Lease - The monthly payment during the first year of a lease.
+
+                            PPA - The estimated monthly payment during the first year of a PPA.
+
+                            Levelized PPA - The estimated monthly payment during the first year of a levelized PPA.
+
+                            '
+                        solar_rate:
+                          type: number
+                          description: Only populated if `financing_option` is `ppa` or `levelized_ppa`. The price paid by the homeowner per kWh of production. Rounded to 3 decimal places.
+                          example: 0.165
+                        specific_yield:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The specific yield (efficiency) of the design expressed in kWh/kWp. Calculated based on the performance simulation and used to help select values for `monthly_payment` (advanced lease) or `solar_rate` (advanced PPA). Rounded to 4 decimal places.
+                          example: 1378.3861
+                        upfront_payment:
+                          type: number
+                          description: Only populated if `financing_option` is `lease`, `ppa`, or `levelized_ppa`. The upfront payment prior to getting solar installed. Rounded to 2 decimal places.
+                          example: 4999.99
+                        prepaid_lease_factor:
+                          type: number
+                          description: The lease factor for a prepaid lease. Only populated for financings associated with Participate Energy. Rounded to 7 decimal places.
+                          example: 1.5384615
+                        financier:
+                          type:
+                          - object
+                          - 'null'
+                          description: Information about the financier associated with this financing. Populated for both integrated and custom financier-backed financings.
+                          properties:
+                            type:
+                              type: string
+                              description: Whether this financing uses an integrated or custom financier.
+                              enum:
+                              - integrated
+                              - custom
+                              example: integrated
+                            provider:
+                              type: string
+                              description: 'Identifier for the financial institution. For integrated financiers, this is the integration code of the financier: `dividend` (Dividend), `enfin` (EnFin), `loanpal` (GoodLeap, which kept the integration code of its former LoanPal brand), `palmetto` (Palmetto LightReach), `sungage` (Sungage), `sunlight` (Sunlight Financial), or `mosaic` (Mosaic, returned only for financings created before that integration was retired). For custom financiers, this is the custom financier name.'
+                              example: loanpal
+                            status:
+                              type:
+                              - string
+                              - 'null'
+                              description: Current state of the financing request. Only populated for integrated financiers.
+                              enum:
+                              - created
+                              - canceled
+                              - quoted
+                              - failed_to_be_quoted
+                              - submitted
+                              - pre_approved
+                              - rejected
+                              example: quoted
+                            approved_loan_amount:
+                              type:
+                              - number
+                              - 'null'
+                              description: The maximum amount of money approved for a loan. Only populated for integrated financiers.
+                              example: 100000
+                            external:
+                              type:
+                              - object
+                              - 'null'
+                              description: Values as they exist with the financial institution. Only populated for integrated financiers.
+                              properties:
+                                provider_status:
+                                  type: string
+                                  description: The state of the financing request as retrieved from the provider before it is normalized to a fixed set of values for the `status`. These can differ between lenders.
+                                  example: funded
+                                request_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. Dividend - Project ID. EnFin - Application ID. GoodLeap TPO - Credit Application ID. Mosaic - Application ID. Sungage - Sungage ID. Unused by GoodLeap Loans, LightReach.
+                                  example: 627209b8-48e7-4dc9-a4d0-a790156086c7
+                                consumer_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. LightReach - Account ID. Unused by Dividend, EnFin, GoodLeap Loans, GoodLeap TPO, Mosaic, Sungage.
+                                  example: 21ba23d5-60b8-4078-a58c-56e7948bcc78
+                                quote_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. LightReach - Quote ID. Mosaic - Offer ID. Unused by Dividend, EnFin, GoodLeap Loans, GoodLeap TPO, Sungage.
+                                  example: 64ec9870-6cfc-4a36-8235-bea8cfbd46b8
+                                estimate_id:
+                                  type: string
+                                  description: Financier-issued ID, value depends on financier. Mosaic - Estimate ID. Unused by Dividend, EnFin, GoodLeap Loans, GoodLeap TPO, LightReach, Sungage.
+                                  example: b1b3b1b3-1b3b-1b3b-1b3b-1b3b1b3b1b3b
+                                contract_signed_at:
+                                  type: string
+                                  format: date-time
+                                  description: Timestamp when the contract was signed, as reported by the financier. Only populated for GoodLeap and LightReach when a contract signed event is received. Formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                                  example: 2023-07-11 18:43:18 UTC
+                            domestic_content_indicated:
+                              type:
+                              - boolean
+                              - 'null'
+                              description: Whether domestic content was indicated for this financing. Only populated for integrated financiers.
+                            created_at:
+                              type:
+                              - string
+                              - 'null'
+                              format: date-time
+                              description: Timestamp when the financing request was created in UTC. Only populated for integrated financiers.
+                            updated_at:
+                              type:
+                              - string
+                              - 'null'
+                              format: date-time
+                              description: Timestamp when the financing request was updated in UTC. Only populated for integrated financiers.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
+      bearerFormat: header

@@ -1,0 +1,367 @@
+openapi: 3.2.0
+info:
+  title: Sync Versions API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Versions
+paths:
+  /versions:
+    get:
+      tags:
+      - Versions
+      summary: Retrieve Versions
+      description: Returns current, latest, and rollback versions associated with this bearer token.
+      operationId: listVersions
+      responses:
+        '200':
+          description: Version successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current:
+                    type: string
+                    description: Current version associated with bearer token.
+                    example: '2022.09'
+                  latest:
+                    type: string
+                    description: The most recent version of the Aurora API.
+                    example: '2022.09'
+                  rollback:
+                    type: string
+                    description: The version available for your token to roll back to. If null, there is no available version for rollback.
+                    example: '2018.01'
+                  rollback_expire_at:
+                    type: string
+                    format: date-time
+                    description: The time at which your current version locks in, and rollback to your previous version becomes unavailable.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /versions/upgrade:
+    post:
+      tags:
+      - Versions
+      summary: Upgrade Version
+      description: 'Upgrade your API Version to the latest API Version.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "This endpoint can break your Aurora Integration. Please ensure you are prepared to handle any changes from your current API Version to the latest API Version."
+
+        }
+
+        [/block]
+
+        The API Version for your Bearer Token will be upgraded to the latest API Version.
+
+        Your rollback version will be set to your previous API version, and will be available for rollback for the next 5 days (120 hours).'
+      operationId: upgradeVersion
+      responses:
+        '200':
+          description: Version successfully upgraded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current:
+                    type: string
+                    description: Current version associated with bearer token.
+                    example: '2022.09'
+                  latest:
+                    type: string
+                    description: The most recent version of the Aurora API.
+                    example: '2022.09'
+                  rollback:
+                    type: string
+                    description: The version available for your token to roll back to. If null, there is no available version for rollback.
+                    example: '2018.01'
+                  rollback_expire_at:
+                    type: string
+                    format: date-time
+                    description: The time at which your current version locks in, and rollback to your previous version becomes unavailable.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /versions/rollback:
+    post:
+      tags:
+      - Versions
+      summary: Rollback Version
+      description: 'Rollback your API Version to your previous API Version.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "This endpoint can break your Aurora Integration. Please ensure you are prepared to rollback to your previous API version."
+
+        }
+
+        [/block]
+
+        The API Version for your Bearer Token will be set to your rollback API Version.
+
+        If you have already rolled back your API Version, or did not upgrade in the last 120 hours, this endpoint will result in an error.'
+      operationId: rollbackVersion
+      responses:
+        '200':
+          description: Version successfully rolled back.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current:
+                    type: string
+                    description: Current version associated with bearer token.
+                    example: '2022.09'
+                  latest:
+                    type: string
+                    description: The most recent version of the Aurora API.
+                    example: '2022.09'
+                  rollback:
+                    type: string
+                    description: The version available for your token to roll back to. If null, there is no available version for rollback.
+                    example: '2018.01'
+                  rollback_expire_at:
+                    type: string
+                    format: date-time
+                    description: The time at which your current version locks in, and rollback to your previous version becomes unavailable.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

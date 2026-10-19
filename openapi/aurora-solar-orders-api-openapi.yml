@@ -1,0 +1,1619 @@
+openapi: 3.2.0
+info:
+  title: Sync Orders API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Orders
+paths:
+  /tenants/{tenant_id}/orders:
+    get:
+      tags:
+      - Orders
+      operationId: listOrders
+      summary: List Orders
+      description: 'Retrieve a list of orders for a tenant.
+
+
+        Orders are returned sorted by time, with the newest orders first.
+
+        Without the page and per_page parameters, the first 100 orders will be returned.
+
+        If per_page is specified, a maximum of 250 orders will be returned.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to get orders for.
+      - name: page
+        in: query
+        required: false
+        description: Page to return, 1-indexed (default `1`)
+        schema:
+          type: integer
+          exclusiveMinimum: 0
+      - name: per_page
+        in: query
+        required: false
+        description: Number of items to return per page (default `100`, max `250`)
+        schema:
+          type: integer
+          exclusiveMinimum: 0
+      responses:
+        '200':
+          description: Orders successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                          description: Unique ID identifying the order.
+                        customer_first_name:
+                          type: string
+                          minLength: 1
+                          description: First name of the customer who the order belongs to
+                        customer_last_name:
+                          type: string
+                          minLength: 1
+                          description: Last name of the customer who the order belongs to
+                        customer_address:
+                          type: string
+                          minLength: 1
+                          description: Address of the customer who the order belongs to
+                        phase:
+                          type:
+                          - string
+                          - 'null'
+                          description: Phase in order lifecycle
+                      required:
+                      - id
+                      - customer_first_name
+                      - customer_last_name
+                      - customer_address
+                required:
+                - orders
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+  /tenants/{tenant_id}/orders/{id}:
+    get:
+      tags:
+      - Orders
+      operationId: retrieveOrder
+      summary: Retrieve Order
+      description: 'Retrieve Order Details
+
+
+        The response includes a `utility_bill_url` field containing a temporary download URL for
+
+        the utility bill attached to the order, if one exists. This URL is valid for 12 hours.
+
+        The field will be `null` if no utility bill is attached to the order.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+        description: The ObjectId of the order to retrieve
+        example: 67a52eeb9f89787e57fb53fe
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to which the order was released.
+      responses:
+        '200':
+          description: Order details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        description: Unique ID identifying the order.
+                      customer_first_name:
+                        type: string
+                        minLength: 1
+                        description: First name of the customer who the order belongs to
+                      customer_last_name:
+                        type: string
+                        minLength: 1
+                        description: Last name of the customer who the order belongs to
+                      customer_email:
+                        type: string
+                        minLength: 1
+                        description: Email of the customer who the order belongs to
+                      customer_phone:
+                        type: string
+                        minLength: 1
+                        description: Phone of the customer who the order belongs to
+                      customer_address:
+                        type: string
+                        minLength: 1
+                        description: Address of the customer who the order belongs to
+                      customer_address_components:
+                        type: object
+                        properties:
+                          street_address:
+                            type:
+                            - string
+                            - 'null'
+                            description: Number and street of the customer address
+                          city:
+                            type:
+                            - string
+                            - 'null'
+                            description: City of the customer address
+                          region:
+                            type:
+                            - string
+                            - 'null'
+                            description: Region, state, or province of the customer address
+                          postal_code:
+                            type:
+                            - string
+                            - 'null'
+                            description: Postal code of the customer address
+                          country:
+                            type:
+                            - string
+                            - 'null'
+                            description: Country of the customer address
+                        description: Parsed components of the customer address
+                      phase:
+                        type:
+                        - string
+                        - 'null'
+                        description: Phase in order lifecycle
+                      sold_by:
+                        type:
+                        - string
+                        - 'null'
+                        description: 'Company that sold the order: aurora or installer'
+                      energy_offset_percent:
+                        type:
+                        - number
+                        - 'null'
+                        description: 'Energy offset percentage: 0.0 is no offset, 1.0 is 100% offset'
+                      origin:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - embedded
+                        - marketplace
+                        description: Product that created the order. Null if not available.
+                      attribution:
+                        description: Marketing attribution captured with the order, such as UTM parameters and ad click IDs. Only fields with values are included. Null if no attribution data is available.
+                        type:
+                        - object
+                        - 'null'
+                        properties:
+                          utm_source:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM source
+                          utm_medium:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM medium
+                          utm_campaign:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM campaign
+                          utm_term:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM term
+                          utm_content:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM content
+                          gclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Google click ID
+                          fbclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Facebook click ID
+                          msclkid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Microsoft click ID
+                      notes:
+                        type:
+                        - string
+                        - 'null'
+                        description: Order notes
+                      utility_bill_url:
+                        type:
+                        - string
+                        - 'null'
+                        description: Temporary download URL for the utility bill attached to this order. Valid for 12 hours. Nil if no utility bill is attached.
+                    required:
+                    - id
+                    - customer_first_name
+                    - customer_last_name
+                    - customer_email
+                    - customer_phone
+                    - customer_address
+                required:
+                - order
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+    put:
+      tags:
+      - Orders
+      operationId: updateOrder
+      summary: Update Order
+      description: Update Order Phase
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+        description: The Object ID of the order
+        example: 67a52eeb9f89787e57fb53fe
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to which the order was released.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order:
+                  type: object
+                  properties:
+                    phase:
+                      type: string
+                      minLength: 1
+                      enum:
+                      - contacted
+                      - scheduled
+                      - attended
+                      - nurturing
+                  required:
+                  - phase
+              required:
+              - order
+      responses:
+        '200':
+          description: Order phase successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        description: Unique ID identifying the order.
+                      customer_first_name:
+                        type: string
+                        minLength: 1
+                        description: First name of the customer who the order belongs to
+                      customer_last_name:
+                        type: string
+                        minLength: 1
+                        description: Last name of the customer who the order belongs to
+                      customer_email:
+                        type: string
+                        minLength: 1
+                        description: Email of the customer who the order belongs to
+                      customer_phone:
+                        type: string
+                        minLength: 1
+                        description: Phone of the customer who the order belongs to
+                      customer_address:
+                        type: string
+                        minLength: 1
+                        description: Address of the customer who the order belongs to
+                      customer_address_components:
+                        type: object
+                        properties:
+                          street_address:
+                            type:
+                            - string
+                            - 'null'
+                            description: Number and street of the customer address
+                          city:
+                            type:
+                            - string
+                            - 'null'
+                            description: City of the customer address
+                          region:
+                            type:
+                            - string
+                            - 'null'
+                            description: Region, state, or province of the customer address
+                          postal_code:
+                            type:
+                            - string
+                            - 'null'
+                            description: Postal code of the customer address
+                          country:
+                            type:
+                            - string
+                            - 'null'
+                            description: Country of the customer address
+                        description: Parsed components of the customer address
+                      phase:
+                        type:
+                        - string
+                        - 'null'
+                        description: Phase in order lifecycle
+                      sold_by:
+                        type:
+                        - string
+                        - 'null'
+                        description: 'Company that sold the order: aurora or installer'
+                      energy_offset_percent:
+                        type:
+                        - number
+                        - 'null'
+                        description: 'Energy offset percentage: 0.0 is no offset, 1.0 is 100% offset'
+                      origin:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - embedded
+                        - marketplace
+                        description: Product that created the order. Null if not available.
+                      attribution:
+                        description: Marketing attribution captured with the order, such as UTM parameters and ad click IDs. Only fields with values are included. Null if no attribution data is available.
+                        type:
+                        - object
+                        - 'null'
+                        properties:
+                          utm_source:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM source
+                          utm_medium:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM medium
+                          utm_campaign:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM campaign
+                          utm_term:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM term
+                          utm_content:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM content
+                          gclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Google click ID
+                          fbclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Facebook click ID
+                          msclkid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Microsoft click ID
+                      notes:
+                        type:
+                        - string
+                        - 'null'
+                        description: Order notes
+                      utility_bill_url:
+                        type:
+                        - string
+                        - 'null'
+                        description: Temporary download URL for the utility bill attached to this order. Valid for 12 hours. Nil if no utility bill is attached.
+                    required:
+                    - id
+                    - customer_first_name
+                    - customer_last_name
+                    - customer_email
+                    - customer_phone
+                    - customer_address
+                required:
+                - order
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/orders/{id}/decline:
+    post:
+      tags:
+      - Orders
+      operationId: declineOrder
+      summary: Decline Order
+      description: Decline an order
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+        description: The ObjectId of the order
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant the order belongs to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disqualified_reason:
+                  type: string
+                  enum:
+                  - aesthetics
+                  - already_has_solar
+                  - commercial_industrial
+                  - could_not_be_reached
+                  - could_not_get_financing
+                  - hoa_restrictions
+                  - installer_at_capacity
+                  - mobile_home
+                  - no_financial_benefit
+                  - other
+                  - outside_service_area
+                  - roof_condition_age
+                  - shading
+                  description: Reason for order disqualification
+                notes:
+                  type:
+                  - string
+                  - 'null'
+                  description: Additional notes. Required with disqualified_reason other
+              required:
+              - disqualified_reason
+      responses:
+        '200':
+          description: Order successfully declined
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        description: Unique ID identifying the order.
+                      customer_first_name:
+                        type: string
+                        minLength: 1
+                        description: First name of the customer who the order belongs to
+                      customer_last_name:
+                        type: string
+                        minLength: 1
+                        description: Last name of the customer who the order belongs to
+                      customer_email:
+                        type: string
+                        minLength: 1
+                        description: Email of the customer who the order belongs to
+                      customer_phone:
+                        type: string
+                        minLength: 1
+                        description: Phone of the customer who the order belongs to
+                      customer_address:
+                        type: string
+                        minLength: 1
+                        description: Address of the customer who the order belongs to
+                      customer_address_components:
+                        type: object
+                        properties:
+                          street_address:
+                            type:
+                            - string
+                            - 'null'
+                            description: Number and street of the customer address
+                          city:
+                            type:
+                            - string
+                            - 'null'
+                            description: City of the customer address
+                          region:
+                            type:
+                            - string
+                            - 'null'
+                            description: Region, state, or province of the customer address
+                          postal_code:
+                            type:
+                            - string
+                            - 'null'
+                            description: Postal code of the customer address
+                          country:
+                            type:
+                            - string
+                            - 'null'
+                            description: Country of the customer address
+                        description: Parsed components of the customer address
+                      phase:
+                        type:
+                        - string
+                        - 'null'
+                        description: Phase in order lifecycle
+                      sold_by:
+                        type:
+                        - string
+                        - 'null'
+                        description: 'Company that sold the order: aurora or installer'
+                      energy_offset_percent:
+                        type:
+                        - number
+                        - 'null'
+                        description: 'Energy offset percentage: 0.0 is no offset, 1.0 is 100% offset'
+                      origin:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - embedded
+                        - marketplace
+                        description: Product that created the order. Null if not available.
+                      attribution:
+                        description: Marketing attribution captured with the order, such as UTM parameters and ad click IDs. Only fields with values are included. Null if no attribution data is available.
+                        type:
+                        - object
+                        - 'null'
+                        properties:
+                          utm_source:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM source
+                          utm_medium:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM medium
+                          utm_campaign:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM campaign
+                          utm_term:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM term
+                          utm_content:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM content
+                          gclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Google click ID
+                          fbclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Facebook click ID
+                          msclkid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Microsoft click ID
+                      notes:
+                        type:
+                        - string
+                        - 'null'
+                        description: Order notes
+                      utility_bill_url:
+                        type:
+                        - string
+                        - 'null'
+                        description: Temporary download URL for the utility bill attached to this order. Valid for 12 hours. Nil if no utility bill is attached.
+                    required:
+                    - id
+                    - customer_first_name
+                    - customer_last_name
+                    - customer_email
+                    - customer_phone
+                    - customer_address
+                required:
+                - order
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/orders/{id}/sold:
+    post:
+      tags:
+      - Orders
+      operationId: soldOrder
+      summary: Mark Order Sold
+      description: Mark an order as sold. If `sale_date` is not provided, defaults to today's date (UTC).
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+        description: The ObjectId of the order
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant the order belongs to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sale_date:
+                  type: string
+                  minLength: 1
+                  description: Date the order was sold. Most date formats are accepted (e.g. "2024-06-15", "06/15/2024", "June 15, 2024"). Defaults to today if omitted.
+      responses:
+        '200':
+          description: Order successfully marked as sold
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        description: Unique ID identifying the order.
+                      customer_first_name:
+                        type: string
+                        minLength: 1
+                        description: First name of the customer who the order belongs to
+                      customer_last_name:
+                        type: string
+                        minLength: 1
+                        description: Last name of the customer who the order belongs to
+                      customer_email:
+                        type: string
+                        minLength: 1
+                        description: Email of the customer who the order belongs to
+                      customer_phone:
+                        type: string
+                        minLength: 1
+                        description: Phone of the customer who the order belongs to
+                      customer_address:
+                        type: string
+                        minLength: 1
+                        description: Address of the customer who the order belongs to
+                      customer_address_components:
+                        type: object
+                        properties:
+                          street_address:
+                            type:
+                            - string
+                            - 'null'
+                            description: Number and street of the customer address
+                          city:
+                            type:
+                            - string
+                            - 'null'
+                            description: City of the customer address
+                          region:
+                            type:
+                            - string
+                            - 'null'
+                            description: Region, state, or province of the customer address
+                          postal_code:
+                            type:
+                            - string
+                            - 'null'
+                            description: Postal code of the customer address
+                          country:
+                            type:
+                            - string
+                            - 'null'
+                            description: Country of the customer address
+                        description: Parsed components of the customer address
+                      phase:
+                        type:
+                        - string
+                        - 'null'
+                        description: Phase in order lifecycle
+                      sold_by:
+                        type:
+                        - string
+                        - 'null'
+                        description: 'Company that sold the order: aurora or installer'
+                      energy_offset_percent:
+                        type:
+                        - number
+                        - 'null'
+                        description: 'Energy offset percentage: 0.0 is no offset, 1.0 is 100% offset'
+                      origin:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - embedded
+                        - marketplace
+                        description: Product that created the order. Null if not available.
+                      attribution:
+                        description: Marketing attribution captured with the order, such as UTM parameters and ad click IDs. Only fields with values are included. Null if no attribution data is available.
+                        type:
+                        - object
+                        - 'null'
+                        properties:
+                          utm_source:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM source
+                          utm_medium:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM medium
+                          utm_campaign:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM campaign
+                          utm_term:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM term
+                          utm_content:
+                            type:
+                            - string
+                            - 'null'
+                            description: UTM content
+                          gclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Google click ID
+                          fbclid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Facebook click ID
+                          msclkid:
+                            type:
+                            - string
+                            - 'null'
+                            description: Microsoft click ID
+                      notes:
+                        type:
+                        - string
+                        - 'null'
+                        description: Order notes
+                      utility_bill_url:
+                        type:
+                        - string
+                        - 'null'
+                        description: Temporary download URL for the utility bill attached to this order. Valid for 12 hours. Nil if no utility bill is attached.
+                    required:
+                    - id
+                    - customer_first_name
+                    - customer_last_name
+                    - customer_email
+                    - customer_phone
+                    - customer_address
+                required:
+                - order
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/orders/{id}/project_creation/run:
+    post:
+      tags:
+      - Orders
+      operationId: createProjectFromOrder
+      summary: Convert Order to Project
+      description: 'Create a Project from an Order.
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+        description: The Object ID of the order.
+        example: 67a52eeb9f89787e57fb53fe
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to which the order was released.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+      responses:
+        '202':
+          description: Job successfully launched.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  create_project_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the job.
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job started.
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job finished.
+                      order_id:
+                        type: string
+                        minLength: 1
+                        description: The Object ID of the order.
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        example: succeeded
+                        description: The status of the job.
+                      source:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - api
+                        example: api
+                        description: The source that triggered the job.
+                      error:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            minLength: 1
+                            description: The error message if the job fails.
+                        required:
+                        - message
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the created project, if available.
+                        example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    required:
+                    - job_id
+                    - requested_at
+                    - order_id
+                    - status
+                    - source
+                required:
+                - create_project_job
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/orders/{id}/project_creation/status:
+    get:
+      tags:
+      - Orders
+      operationId: retrieveCreateProjectStatus
+      summary: Retrieve Convert Order to Project Status
+      description: 'Retrieve the status of a Convert Order to Project job.
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.
+
+
+        You will need the job_id from the response body of a POST to the Convert Order to Project endpoint.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+        description: The Object ID of the order
+        example: 67a52eeb9f89787e57fb53fe
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to which the order was released.
+      - name: job_id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Create project job status successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  create_project_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the job.
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job started.
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job finished.
+                      order_id:
+                        type: string
+                        minLength: 1
+                        description: The Object ID of the order.
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        example: succeeded
+                        description: The status of the job.
+                      source:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - api
+                        example: api
+                        description: The source that triggered the job.
+                      error:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            minLength: 1
+                            description: The error message if the job fails.
+                        required:
+                        - message
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the created project, if available.
+                        example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                    required:
+                    - job_id
+                    - requested_at
+                    - order_id
+                    - status
+                    - source
+                required:
+                - create_project_job
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

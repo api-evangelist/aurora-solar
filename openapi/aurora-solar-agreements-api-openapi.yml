@@ -1,38 +1,49 @@
 openapi: 3.2.0
 info:
-  title: Aurora Solar Agreements API
-  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
-  version: v2024.05
+  title: Sync Agreements API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
   contact:
-    name: Aurora Solar Developer Platform
-    url: https://docs.aurorasolar.com
-  license:
-    name: Proprietary
-    url: https://aurorasolar.com/terms-of-service/
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
 servers:
-- url: https://api.aurorasolar.com
-  description: Production
 - url: https://api-sandbox.aurorasolar.com
-  description: Sandbox
+  description: Sandbox Environment
 security:
 - bearerAuth: []
 tags:
 - name: Agreements
-  description: Customer agreements and signed downloads.
 paths:
-  /tenants/{tenant_id}/agreements:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
+  /tenants/{tenant_id}/projects/{project_id}/agreements:
     get:
-      operationId: listAgreements
       tags:
       - Agreements
-      summary: List agreements
-      description: Lists customer agreements for the tenant.
-      x-modeled: true
+      summary: List Agreements
+      description: 'Returns a list of agreements for a project.
+
+
+        Agreements are returned sorted in descending order based on creation date.
+
+        Each item includes a `signing_provider` field indicating whether the agreement is backed by `docusign` or `dropbox_sign`.'
+      operationId: listAgreements
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        description: The ID of the project to query for.
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: A list of agreements.
+          description: Agreements successfully retrieved.
           content:
             application/json:
               schema:
@@ -41,122 +52,807 @@ paths:
                   agreements:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Agreement'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /tenants/{tenant_id}/agreements/{agreement_id}:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - name: agreement_id
-      in: path
-      required: true
-      schema:
-        type: string
-    get:
-      operationId: retrieveAgreement
-      tags:
-      - Agreements
-      summary: Retrieve an agreement
-      description: Retrieves a customer agreement by ID.
-      x-modeled: true
-      responses:
-        '200':
-          description: The requested agreement.
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: 839811ef-ee81-4ce2-8b6c-0cda53e4d818
+                          format: uuid
+                          description: The unique ID identifying the agreement.
+                        project_id:
+                          type: string
+                          example: e9990fc0-5115-49be-8e93-ea472b8b3626
+                          format: uuid
+                          description: The unique ID identifying the project that the agreement belongs to.
+                        design_id:
+                          type: string
+                          example: b54c358a-bb1d-4716-81f6-01246005ca88
+                          format: uuid
+                          description: The unique ID identifying the design that the agreement belongs to.
+                        agreement_template_name:
+                          type: string
+                          example: Agreement Template 1
+                          description: The name of the template used to generate the agreement.
+                        created_at:
+                          type: string
+                          description: The timestamp of when the agreement was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        signing_provider:
+                          type: string
+                          enum:
+                          - dropbox_sign
+                          - docusign
+                          description: The e-signature provider that backs this agreement.
+                          example: dropbox_sign
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Agreement'
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
-  /tenants/{tenant_id}/agreements/{agreement_id}/link:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - name: agreement_id
-      in: path
-      required: true
-      schema:
-        type: string
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/agreements/{id}:
     get:
-      operationId: retrieveAgreementLink
       tags:
       - Agreements
-      summary: Retrieve agreement link
-      description: Retrieves a hosted link where the customer can view/sign the agreement.
-      x-modeled: true
+      summary: Retrieve Agreement
+      description: Retrieve an agreement by ID. Returns either an agreement backed by Docusign or Dropbox Sign. The `signing_provider` field in the response indicates which provider the agreement is backed by.
+      operationId: getAgreement
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the agreement to query for.
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: The agreement link.
+          description: Agreement successfully retrieved.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  url:
-                    type: string
-                    format: uri
+                  agreement:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 839811ef-ee81-4ce2-8b6c-0cda53e4d818
+                        format: uuid
+                        description: A unique ID identifying the agreement.
+                      project_id:
+                        type: string
+                        example: e9990fc0-5115-49be-8e93-ea472b8b3626
+                        format: uuid
+                        description: A unique ID identifying the project that the agreement belongs to.
+                      design_id:
+                        type: string
+                        example: b54c358a-bb1d-4716-81f6-01246005ca88
+                        format: uuid
+                        description: A unique ID identifying the design that the agreement belongs to.
+                      agreement_template_name:
+                        type: string
+                        description: The name of the template used to generate the agreement.
+                        example: Agreement Template 1
+                      status:
+                        type: string
+                        enum:
+                        - cancel_pending
+                        - canceled
+                        - sent
+                        - viewed
+                        - signed
+                        - error
+                        - declined
+                        description: The status of the agreement.
+                        example: sent
+                      last_viewed_at:
+                        type:
+                        - string
+                        - 'null'
+                        description: The timestamp of when the agreement was last viewed, formatted as "YYYY-MM-DD HH:MM:SS UTC". Null for Docusign agreements.
+                        example: 2023-07-11 18:43:18 UTC
+                      created_at:
+                        type: string
+                        description: The timestamp of when the agreement was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2023-07-11 18:43:18 UTC
+                      sent_at:
+                        type:
+                        - string
+                        - 'null'
+                        description: The timestamp of when the agreement was sent, formatted as "YYYY-MM-DD HH:MM:SS UTC". Null for Docusign agreements.
+                        example: 2023-07-11 18:43:18 UTC
+                      error_message:
+                        type:
+                        - string
+                        - 'null'
+                        description: A description of the caught error. Null for Docusign agreements.
+                        example: null
+                      signing_provider:
+                        type: string
+                        enum:
+                        - dropbox_sign
+                        - docusign
+                        description: The e-signature provider that backs this agreement.
+                        example: dropbox_sign
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
-components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-    Agreement:
-      type: object
-      properties:
-        id:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/agreements/{id}/download_link:
+    get:
+      tags:
+      - Agreements
+      summary: Retrieve Agreement Link
+      description: 'Retrieves a download link and expiry time for a signed legacy agreement backed by Dropbox Sign. The link expires 72 hours after generation. This endpoint is rate-limited to 5 requests a minute.
+
+        For Docusign agreements, use the Run Agreement Download URL Generation endpoint instead.'
+      operationId: getAgreementDownloadLink
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
           type: string
           format: uuid
-        project_id:
+      - name: id
+        in: path
+        description: The ID of the agreement to query for.
+        required: true
+        schema:
           type: string
-        status:
+          format: uuid
+      responses:
+        '200':
+          description: Download link successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agreement:
+                    type: object
+                    properties:
+                      file_url:
+                        type: string
+                        example: https://s3.amazonaws.com/hellofax_uploads/super_groups/2016/03/18/9aba07a585d7e223b4f137c8981c5e5892893c00/merged-completed.pdf?AWSAccessKeyId=AKIAJWEWDFQHQMBECJZA&Expires=1452868903&Signature=M%252FNDS%252BQre8xjPvzm7fHf%252BjO8Zbc%253D
+                        format: string
+                        description: The URL to download the agreement from. Expires 72 hours after generation.
+                      expires_at:
+                        type: string
+                        example: '2023-05-23T21:49:57Z'
+                        description: The expiry time for file_url, formatted as "YYYY-MM-DDTHH:MM:SSZ"
+              example:
+                agreement:
+                  file_url: https://s3.amazonaws.com/hellofax_uploads/super_groups/2016/03/18/9aba07a585d7e223b4f137c8981c5e5892893c00/merged-completed.pdf?AWSAccessKeyId=AKIAJWEWDFQHQMBECJZA&Expires=1452868903&Signature=M%252FNDS%252BQre8xjPvzm7fHf%252BjO8Zbc%253D
+                  expires_at: '2023-05-23T21:49:57Z'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/agreements/{id}/download_url/run:
+    post:
+      tags:
+      - Agreements
+      summary: Run Agreement Download URL Generation
+      description: 'Initiates async generation of a download URL for a Docusign agreement. Only applicable to agreements with `signing_provider: "docusign"`. The agreement must have a status of `signed`.
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.'
+      operationId: runAgreementDownloadUrlGeneration
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant.
+        required: true
+        schema:
           type: string
-          enum:
-          - draft
-          - sent
-          - signed
-          - declined
-        signed_at:
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the Docusign agreement.
+        required: true
+        schema:
           type: string
-          format: date-time
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
+          format: uuid
+      responses:
+        '202':
+          description: Download URL generation job accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agreement_download_url_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: The unique ID of this async job.
+                        example: 4f3e2d1c-0b9a-8765-4321-fedcba987654
+                      requested_at:
+                        type: string
+                        description: The timestamp when the job was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2024-01-15 10:30:00 UTC
+                      completed_at:
+                        type:
+                        - string
+                        - 'null'
+                        description: The timestamp when the job completed, formatted as "YYYY-MM-DD HH:MM:SS UTC". Null while in progress.
+                        example: 2024-01-15 10:30:05 UTC
+                      status:
+                        type: string
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        description: The current status of the download URL generation job.
+                        example: succeeded
+                      file_url:
+                        type:
+                        - string
+                        - 'null'
+                        description: The short-lived URL to download the agreement PDF. Only present when status is "succeeded".
+                        example: https://storage.example.com/api/blob/48831006cdbe0b69670ca41a58603d0e?token=xyz
+                      filename:
+                        type:
+                        - string
+                        - 'null'
+                        description: The sanitized filename for the agreement PDF. Only present when status is "succeeded".
+                        example: agreement_jane_doe_smith_e9990fc0-5115-49be-8e93-ea472b8b3626.pdf
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the project that the agreement belongs to.
+                        example: e9990fc0-5115-49be-8e93-ea472b8b3626
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design that the agreement belongs to.
+                        example: b54c358a-bb1d-4716-81f6-01246005ca88
+                      error:
+                        type:
+                        - object
+                        - 'null'
+                        description: Error details if the job failed.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/agreements/{id}/download_url/status:
+    get:
+      tags:
+      - Agreements
+      summary: Retrieve Agreement Download URL
+      description: 'Retrieves the status of an agreement download URL generation job.
+
+        ---
+
+        You will need the `job_id` from the response body of a POST to the Run Agreement Download URL Generation endpoint, or from the parameters of a `agreement_download_url_job_completed` webhook call.
+
+        When the job succeeds, the response includes a `file_url` for downloading the PDF. The URL expires 15 minutes after generation.'
+      operationId: getAgreementDownloadUrl
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the Docusign agreement.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: job_id
+        in: query
+        description: The ID of the download URL generation job returned by the run endpoint.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Job status retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agreement_download_url_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: The unique ID of this async job.
+                        example: 4f3e2d1c-0b9a-8765-4321-fedcba987654
+                      requested_at:
+                        type: string
+                        description: The timestamp when the job was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2024-01-15 10:30:00 UTC
+                      completed_at:
+                        type:
+                        - string
+                        - 'null'
+                        description: The timestamp when the job completed, formatted as "YYYY-MM-DD HH:MM:SS UTC". Null while in progress.
+                        example: 2024-01-15 10:30:05 UTC
+                      status:
+                        type: string
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        description: The current status of the download URL generation job.
+                        example: succeeded
+                      file_url:
+                        type:
+                        - string
+                        - 'null'
+                        description: The short-lived URL to download the agreement PDF. Only present when status is "succeeded".
+                        example: https://storage.example.com/api/blob/48831006cdbe0b69670ca41a58603d0e?token=xyz
+                      filename:
+                        type:
+                        - string
+                        - 'null'
+                        description: The sanitized filename for the agreement PDF. Only present when status is "succeeded".
+                        example: agreement_jane_doe_smith_e9990fc0-5115-49be-8e93-ea472b8b3626.pdf
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the project that the agreement belongs to.
+                        example: e9990fc0-5115-49be-8e93-ea472b8b3626
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design that the agreement belongs to.
+                        example: b54c358a-bb1d-4716-81f6-01246005ca88
+                      error:
+                        type:
+                        - object
+                        - 'null'
+                        description: Error details if the job failed.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
+      bearerFormat: header

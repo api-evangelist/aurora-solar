@@ -1,0 +1,712 @@
+openapi: 3.2.0
+info:
+  title: Sync Utility Bills API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Utility Bills
+paths:
+  /tenants/{tenant_id}/projects/{project_id}/utility_bills/run:
+    post:
+      tags:
+      - Utility Bills
+      operationId: runUtilityBillUpload
+      summary: Run Utility Bill Upload
+      description: 'Uploads a utility bill document for a project and starts an asynchronous OCR parse of its contents. The file upload itself is handled synchronously inside this endpoint, so a `utility_bill_id` is returned immediately along with the `job_id` for the parse step.
+
+
+        The bill bytes are sent as a raw request body (not multipart/JSON), with the original filename carried in the `Content-Disposition` header. Accepted formats: PDF, JPG, JPEG, PNG, GIF, WEBP.
+
+
+        ---
+
+
+        **Last-parse-wins semantics.** Each completed parse replaces the consumption data derived from any previously parsed bill on the same project — only the most recently parsed bill feeds the project''s load profile. Because parse jobs run asynchronously and are not strictly FIFO, an earlier upload that finishes parsing after a later upload will become the active bill. Older bill files persist in storage but no longer contribute to the project''s consumption values. This matches the behavior of the in-app utility bill upload UI.
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the project is part of.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project to attach the bill to.
+      - name: Content-Disposition
+        in: header
+        required: false
+        schema:
+          type: string
+        description: 'Carries the bill''s original filename. Format: `attachment; filename="bill.pdf"`.'
+        example: attachment; filename="bill.pdf"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+        description: Raw bytes of the utility bill file.
+      responses:
+        '202':
+          description: Upload accepted; parse job dispatched.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  utility_bill_upload_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the utility bill upload job.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: ID of the project the utility bill belongs to.
+                      utility_bill_id:
+                        type: string
+                        format: uuid
+                        description: ID of the uploaded utility bill. Populated as soon as the upload completes synchronously, before parsing finishes. Use with [Retrieve Utility Bill](ref:retrieveutilitybill) to fetch the bill file once parsing has succeeded.
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC$
+                        description: Timestamp when the upload was received, formatted as "YYYY-MM-DD HH:MM:SS UTC".
+                        example: 2024-07-26 15:20:31 UTC
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC$
+                        description: Timestamp when the parse step finished, formatted as "YYYY-MM-DD HH:MM:SS UTC". Null while still in progress.
+                        example: 2024-07-26 15:20:31 UTC
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        description: Current status of the utility bill upload job.
+                        example: succeeded
+                      source:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - api
+                        - app
+                        description: Source of the job. `api` if the bill was uploaded via the [Run Utility Bill Upload](ref:runutilitybillupload) endpoint; `app` if uploaded by a user inside Aurora.
+                        example: api
+                      error:
+                        description: Detailed error. Only populated when status is "failed".
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            minLength: 1
+                            description: Human-readable error message.
+                        required:
+                        - message
+                    required:
+                    - job_id
+                    - project_id
+                    - utility_bill_id
+                    - requested_at
+                    - status
+                    - source
+                required:
+                - utility_bill_upload_job
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/projects/{project_id}/utility_bills/status:
+    get:
+      tags:
+      - Utility Bills
+      operationId: retrieveUtilityBillUploadStatus
+      summary: Retrieve Utility Bill Upload Status
+      description: 'Retrieves the status of a utility bill upload + parse job. Use the `job_id` returned by the Run Utility Bill Upload endpoint.
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the project is part of.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project the bill belongs to.
+      - name: job_id
+        in: query
+        required: true
+        description: The ID of the utility bill upload job returned by the run endpoint.
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Job status retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  utility_bill_upload_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the utility bill upload job.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: ID of the project the utility bill belongs to.
+                      utility_bill_id:
+                        type: string
+                        format: uuid
+                        description: ID of the uploaded utility bill. Populated as soon as the upload completes synchronously, before parsing finishes. Use with [Retrieve Utility Bill](ref:retrieveutilitybill) to fetch the bill file once parsing has succeeded.
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC$
+                        description: Timestamp when the upload was received, formatted as "YYYY-MM-DD HH:MM:SS UTC".
+                        example: 2024-07-26 15:20:31 UTC
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        pattern: ^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} UTC$
+                        description: Timestamp when the parse step finished, formatted as "YYYY-MM-DD HH:MM:SS UTC". Null while still in progress.
+                        example: 2024-07-26 15:20:31 UTC
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        description: Current status of the utility bill upload job.
+                        example: succeeded
+                      source:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - api
+                        - app
+                        description: Source of the job. `api` if the bill was uploaded via the [Run Utility Bill Upload](ref:runutilitybillupload) endpoint; `app` if uploaded by a user inside Aurora.
+                        example: api
+                      error:
+                        description: Detailed error. Only populated when status is "failed".
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            minLength: 1
+                            description: Human-readable error message.
+                        required:
+                        - message
+                    required:
+                    - job_id
+                    - project_id
+                    - utility_bill_id
+                    - requested_at
+                    - status
+                    - source
+                required:
+                - utility_bill_upload_job
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/projects/{project_id}/utility_bills:
+    get:
+      tags:
+      - Utility Bills
+      operationId: listUtilityBills
+      summary: List Utility Bills
+      description: 'Lists every utility bill uploaded to the project, newest first, with a fresh presigned `file_url` for each. The download URLs expire after 24 hours; re-call this endpoint (or Retrieve Utility Bill) to refresh them.
+
+
+        ---
+
+
+        **Last-parse-wins semantics.** Only the most recently parsed bill feeds the project''s load profile and consumption data. Older bills returned by this endpoint are historical artifacts — they remain in storage but are not currently being used by Aurora to compute consumption. This matches the in-app utility bill upload UI, which only ever displays the most recent upload.
+
+
+        Because parse jobs run asynchronously and are not strictly FIFO, sort order (`created_at` descending) reflects upload time, not parse-completion time. Upload bills one at a time — wait for each `utility_bill_upload_job_completed` webhook before starting the next upload — to keep the active bill predictable.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the project is part of.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project to list utility bills for.
+      responses:
+        '200':
+          description: Utility bills retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  utility_bills:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the utility bill file.
+                        name:
+                          type: string
+                          minLength: 1
+                          description: Filename without extension.
+                          example: march_bill
+                        extension:
+                          type: string
+                          description: File extension, including the leading dot.
+                          example: .pdf
+                        mime_type:
+                          type: string
+                          minLength: 1
+                          description: MIME type of the bill file.
+                          example: application/pdf
+                        size:
+                          type: integer
+                          description: Size of the bill file in bytes.
+                          example: 102400
+                          exclusiveMinimum: 0
+                        file_url:
+                          type: string
+                          minLength: 1
+                          description: Freshly-minted presigned download URL for the bill file. Expires after 24 hours; re-request to refresh.
+                        created_at:
+                          type: string
+                          minLength: 1
+                          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$
+                          description: Timestamp when the bill was uploaded, in UTC.
+                          example: '2017-07-21T17:32:28Z'
+                      required:
+                      - id
+                      - name
+                      - extension
+                      - mime_type
+                      - size
+                      - file_url
+                      - created_at
+                required:
+                - utility_bills
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/projects/{project_id}/utility_bills/{id}:
+    get:
+      tags:
+      - Utility Bills
+      operationId: retrieveUtilityBill
+      summary: Retrieve Utility Bill
+      description: 'Retrieves a single utility bill from the project with a freshly-minted presigned `file_url`. The download URL expires after 24 hours; re-call this endpoint to refresh it.
+
+
+        ---
+
+
+        **Last-parse-wins semantics.** Only the most recently uploaded bill on the project feeds its load profile and consumption data. A bill returned by this endpoint that is not the most recent is a historical artifact — it remains in storage but is not currently being used by Aurora to compute consumption.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the project is part of.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project the bill belongs to.
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the utility bill to retrieve.
+      responses:
+        '200':
+          description: Utility bill retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  utility_bill:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the utility bill file.
+                      name:
+                        type: string
+                        minLength: 1
+                        description: Filename without extension.
+                        example: march_bill
+                      extension:
+                        type: string
+                        description: File extension, including the leading dot.
+                        example: .pdf
+                      mime_type:
+                        type: string
+                        minLength: 1
+                        description: MIME type of the bill file.
+                        example: application/pdf
+                      size:
+                        type: integer
+                        description: Size of the bill file in bytes.
+                        example: 102400
+                        exclusiveMinimum: 0
+                      file_url:
+                        type: string
+                        minLength: 1
+                        description: Freshly-minted presigned download URL for the bill file. Expires after 24 hours; re-request to refresh.
+                      created_at:
+                        type: string
+                        minLength: 1
+                        pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$
+                        description: Timestamp when the bill was uploaded, in UTC.
+                        example: '2017-07-21T17:32:28Z'
+                    required:
+                    - id
+                    - name
+                    - extension
+                    - mime_type
+                    - size
+                    - file_url
+                    - created_at
+                required:
+                - utility_bill
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

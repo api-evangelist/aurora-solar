@@ -1,0 +1,159 @@
+openapi: 3.2.0
+info:
+  title: Sync Shared Projects API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Shared Projects
+paths:
+  /tenants/{tenant_id}/shared_projects:
+    get:
+      tags:
+      - Shared Projects
+      summary: List Shared Projects
+      description: 'Returns a paginated list of projects shared with the current tenant.
+
+
+        ---
+
+
+        Projects are sorted in descending order based on when they were shared. Without the page and per_page parameters, the first 100 shared projects will be returned.'
+      operationId: listSharedProjects
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get shared projects for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page to return, 1-indexed (default `1`)
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        description: Number of items to return per page (default `100`, max `250`)
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Shared projects successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shared_projects:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project
+                        name:
+                          type: string
+                          description: Name of the project
+                        property_address:
+                          type: string
+                          description: Property address of the project
+                        shared_milestones:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                                description: Milestone ID
+                              sending_tenant_id:
+                                type: string
+                                format: uuid
+                                description: ID of the tenant that shared the project
+                              sending_tenant_name:
+                                type: string
+                                description: Name of the tenant that shared the project
+                              shared_at:
+                                type: string
+                                format: date-time
+                                description: When the milestone was shared
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

@@ -1,0 +1,555 @@
+openapi: 3.2.0
+info:
+  title: Sync AI Roof API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: AI Roof
+paths:
+  /tenants/{tenant_id}/designs/{design_id}/ai_roof/run:
+    post:
+      tags:
+      - AI Roof
+      operationId: runAiRoof
+      summary: Run AI Roof
+      description: 'Generate a roof model for a design.
+
+
+        ---
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the design is part of.
+      - name: design_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the design to generate a roof model for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ai_roof_mode:
+                  type: string
+                  minLength: 1
+                  enum:
+                  - roof_faces
+                  - smart_roof
+                  description: 'Which AI Roof model to use: `roof_faces` for AI Roof Faces, `smart_roof` for AI SmartRoof. Defaults to the tenant''s AI Roof default setting.'
+                  example: roof_faces
+                run_tree_detection_with_ai_roof:
+                  type: boolean
+                  description: True to run AI tree detection alongside AI Roof. Defaults to the tenant's "Run AI Trees with AI Roofs" setting. Has no effect if AI tree detection is not enabled for the tenant.
+                defer_auto_accept:
+                  type: boolean
+                  description: True to leave a successful roof model pending review instead of accepting it immediately. Pending models are accepted automatically one hour after completion, matching the behavior of AI Roof run in the Aurora app, and can be rejected before then with Reject AI Roof — which deletes the design. Defaults to false, which accepts the model as soon as the job succeeds.
+      responses:
+        '200':
+          description: Job successfully launched.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ai_roof_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the job.
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job started.
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job finished.
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design.
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        example: succeeded
+                        description: The status of the job.
+                      source:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - api
+                        example: api
+                        description: The source that triggered the job.
+                      error:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            minLength: 1
+                            description: The error message if the job fails.
+                        required:
+                        - message
+                    required:
+                    - job_id
+                    - requested_at
+                    - design_id
+                    - status
+                    - source
+                required:
+                - ai_roof_job
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/designs/{design_id}/ai_roof/status:
+    get:
+      tags:
+      - AI Roof
+      operationId: retrieveAiRoofStatus
+      summary: Retrieve AI Roof Status
+      description: Check the status of an AI Roof job.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the design is part of.
+      - name: design_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the design to generate a roof model for.
+      - name: job_id
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: The current status of the job.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ai_roof_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the job.
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job started.
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        description: The time the job finished.
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design.
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        example: succeeded
+                        description: The status of the job.
+                      source:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - api
+                        example: api
+                        description: The source that triggered the job.
+                      error:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            minLength: 1
+                            description: The error message if the job fails.
+                        required:
+                        - message
+                    required:
+                    - job_id
+                    - requested_at
+                    - design_id
+                    - status
+                    - source
+                required:
+                - ai_roof_job
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/designs/{design_id}/ai_roof/reject:
+    post:
+      tags:
+      - AI Roof
+      operationId: rejectAiRoof
+      summary: Reject AI Roof
+      description: 'Reject a roof model that is awaiting review, so that it is not accepted and no credits are consumed.
+
+
+        > 🚧 **This permanently deletes the design and everything attached to it**: proposals, agreements, plan sets, financings, pricing, adders and design assets. It cannot be undone.
+
+        >
+
+        > AI Roof writes the model directly into the design, and the generated geometry cannot be removed on its own, so rejecting deletes the design. Use this only on a design created to receive an AI Roof model, not one you intend to keep.
+
+
+        ---
+
+
+        Applies only to a model generated with `defer_auto_accept` set on Run AI Roof, while it is still within its one hour review window. Once a model has been accepted, it can no longer be rejected.
+
+
+        Rejection and deletion are all-or-nothing. If the design cannot be deleted, this operation returns `409` and the model is **not** rejected: it stays awaiting review and will be accepted, and billed, when the review window elapses. Common causes are a completed permit request, a shared milestone, an applied financing, or a signed agreement. Clear the blocker and call again before the window elapses.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the design is part of.
+      - name: design_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the design whose roof model should be rejected. The design is deleted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ai_roof:
+                  description: Details of the rejection.
+                  type: object
+                  properties:
+                    rejection_reason:
+                      type: string
+                      minLength: 1
+                      maxLength: 255
+                      description: Why the roof model was rejected. Stored with the request and used to improve AI Roof quality.
+                      example: Roof planes did not match the building outline
+      responses:
+        '204':
+          description: Roof model rejected and design deleted.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

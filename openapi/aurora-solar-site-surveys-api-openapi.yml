@@ -1,0 +1,2467 @@
+openapi: 3.2.0
+info:
+  title: Sync Site Surveys API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Site Surveys
+paths:
+  /tenants/{tenant_id}/projects/{id}/site_surveys:
+    get:
+      tags:
+      - Site Surveys
+      operationId: listSiteSurveys
+      summary: List Site Surveys
+      description: 'Returns a list of site surveys for the project.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to list site surveys for.
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project to list site surveys for.
+      responses:
+        '200':
+          description: Site surveys successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site_surveys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                          format: uuid
+                          description: The ID of the site survey.
+                        status:
+                          type: string
+                          enum:
+                          - in-progress
+                          - completed
+                          description: The status of the site survey.
+                        created_at:
+                          type: string
+                          minLength: 1
+                          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$
+                          description: The timestamp when the site survey was created in UTC.
+                          example: '2023-05-23T21:49:57.123Z'
+                        requested_for_design_id:
+                          type:
+                          - string
+                          - 'null'
+                          minLength: 1
+                          format: uuid
+                          description: The ID of the design the site survey was requested for.
+                      required:
+                      - id
+                      - status
+                      - created_at
+                      - requested_for_design_id
+                required:
+                - site_surveys
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/site_surveys:
+    post:
+      tags:
+      - Site Surveys
+      operationId: createSiteSurvey
+      summary: Create Site Survey
+      description: 'Create a new site survey.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to create the site survey for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_survey:
+                  description: Site survey to create.
+                  type: object
+                  properties:
+                    project_id:
+                      type: string
+                      minLength: 1
+                      format: uuid
+                      description: The ID of the project the site survey request is for.
+                  required:
+                  - project_id
+              required:
+              - site_survey
+      responses:
+        '200':
+          description: Site Survey successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site_survey:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: The ID of the site survey.
+                    required:
+                    - id
+                required:
+                - site_survey
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/site_surveys/{site_survey_id}/request:
+    get:
+      tags:
+      - Site Surveys
+      operationId: getSiteSurveyRequest
+      summary: Retrieve Site Survey Request
+      description: 'Returns a site survey request.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to get a site survey request for.
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to get a request for.
+      responses:
+        '200':
+          description: Site survey request successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site_survey_request:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: The ID of the site survey request.
+                      project_id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: The ID of the project the site survey is for.
+                      status:
+                        type: string
+                        enum:
+                        - in-progress
+                        - completed
+                        description: The status of the site survey.
+                      requested_for_design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design the site survey was requested for.
+                      screenshot_url:
+                        type:
+                        - string
+                        - 'null'
+                        format: uri
+                        pattern: ^(http|https)://
+                        description: The URL of the screenshot used for the site survey request. Expires after 24 hours and is refreshed on each request.
+                        example: http://some-host.com/some-path/file1.png
+                      requested_at:
+                        type: string
+                        minLength: 1
+                        format: date-time
+                        description: The timestamp when the site survey was requested in UTC.
+                      completed_at:
+                        type: string
+                        minLength: 1
+                        format: date-time
+                        description: The timestamp when the site survey was completed in UTC.
+                    required:
+                    - id
+                    - project_id
+                    - status
+                required:
+                - site_survey_request
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/site_surveys/{site_survey_id}:
+    get:
+      tags:
+      - Site Surveys
+      operationId: getSiteSurvey
+      summary: Retrieve Site Survey
+      description: 'Returns a site survey.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to get a site survey for.
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to retrieve.
+      responses:
+        '200':
+          description: Site survey successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site_survey:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: The ID of the site survey.
+                      project_id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: The ID of the project the site survey is for.
+                      status:
+                        type: string
+                        enum:
+                        - in-progress
+                        - completed
+                        description: The status of the site survey.
+                      requested_at:
+                        type:
+                        - string
+                        - 'null'
+                        minLength: 1
+                        format: date-time
+                        description: The timestamp when the site survey was requested in UTC.
+                      completed_at:
+                        type:
+                        - string
+                        - 'null'
+                        minLength: 1
+                        format: date-time
+                        description: The timestamp when the site survey was completed in UTC.
+                      created_at:
+                        type: string
+                        minLength: 1
+                        format: date-time
+                        description: The timestamp when the site survey was created in UTC.
+                      report:
+                        description: PDF report to associate with the site survey
+                        type:
+                        - object
+                        - 'null'
+                        properties:
+                          url:
+                            type: string
+                            format: uri
+                            pattern: ^(https)://
+                            description: URL of the report. If the filename field is not provided, the URL must contain a filename with a `.pdf` extension
+                            example: https://example.com/report.pdf
+                          filename:
+                            type: string
+                            minLength: 1
+                            description: The filename of the report. It must have a `.pdf` extension
+                            example: report.pdf
+                        required:
+                        - url
+                      notes:
+                        type: string
+                        description: Overall notes for the site survey.
+                        example: Corner lot. Easy access to mounting planes and main panel
+                      images:
+                        description: List of images to associate with the site survey
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              minLength: 1
+                              format: uri
+                              pattern: ^(https)://
+                              description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: https://example.com/image.jpg
+                            filename:
+                              type: string
+                              minLength: 1
+                              description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: image.jpg
+                          required:
+                          - url
+                      electrical:
+                        description: Site survey electrical data.
+                        type: object
+                        properties:
+                          main_panel_location:
+                            type:
+                            - string
+                            - 'null'
+                            enum:
+                            - north_interior
+                            - north_exterior
+                            - south_interior
+                            - south_exterior
+                            - east_interior
+                            - east_exterior
+                            - west_interior
+                            - west_exterior
+                            - ne_interior
+                            - ne_exterior
+                            - nw_interior
+                            - nw_exterior
+                            - se_interior
+                            - se_exterior
+                            - sw_interior
+                            - sw_exterior
+                            - basement
+                            - garage
+                            - barn
+                            - pole_mounted
+                            - main_floor
+                            - roof_top
+                            description: The location of the main panel.
+                          main_bus_rating:
+                            type:
+                            - number
+                            - 'null'
+                            minimum: 0
+                            description: The rating of the main bus, in amperes.
+                            example: 200
+                          main_breaker_rating:
+                            type:
+                            - number
+                            - 'null'
+                            minimum: 0
+                            description: The rating of the main breaker, in amperes.
+                            example: 200
+                          service_type:
+                            type:
+                            - string
+                            - 'null'
+                            enum:
+                            - single_phase_3_wire
+                            - single_phase_2_wire
+                            - 3_phase_4_wire
+                            - 3_phase_3_wire
+                            description: The service type.
+                          feeder_type:
+                            type:
+                            - string
+                            - 'null'
+                            enum:
+                            - overhead
+                            - underground
+                            - pole_mounted
+                            - ct_cabinet
+                            - other
+                            description: The feeder type. If "other", specify in `notes`.
+                          utility_meter_location:
+                            type:
+                            - string
+                            - 'null'
+                            enum:
+                            - north_interior
+                            - north_exterior
+                            - south_interior
+                            - south_exterior
+                            - east_interior
+                            - east_exterior
+                            - west_interior
+                            - west_exterior
+                            - ne_interior
+                            - ne_exterior
+                            - nw_interior
+                            - nw_exterior
+                            - se_interior
+                            - se_exterior
+                            - sw_interior
+                            - sw_exterior
+                            - basement
+                            - garage
+                            - barn
+                            - pole_mounted
+                            - main_floor
+                            - roof_top
+                            description: The location of the utility meter.
+                          existing_grounding:
+                            type:
+                            - string
+                            - 'null'
+                            enum:
+                            - ground_rod
+                            - cold_water_pipe
+                            - ufer
+                            - other
+                            description: The method of the existing grounding. If "other", specify in `notes`.
+                          existing_grounding_location:
+                            type:
+                            - string
+                            - 'null'
+                            minLength: 1
+                            description: The location of the existing grounding.
+                            example: garage
+                          main_panel_manufacturer:
+                            type:
+                            - string
+                            - 'null'
+                            minLength: 1
+                            description: The manufacturer of the main panel.
+                            example: Square D
+                          images:
+                            description: List of images to associate with the electrical data
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                url:
+                                  type: string
+                                  minLength: 1
+                                  format: uri
+                                  pattern: ^(https?)://
+                                  description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                  example: https://example.com/image.jpg
+                                filename:
+                                  type: string
+                                  minLength: 1
+                                  description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                  example: image.jpg
+                              required:
+                              - url
+                          notes:
+                            type: string
+                            description: Additional notes for the site survey electrical data.
+                            example: Meter obscured by overgrown hedge
+                          subpanels:
+                            description: List of electrical subpanels for the site survey.
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                location:
+                                  type:
+                                  - string
+                                  - 'null'
+                                  description: Subpanel location
+                                  example: Garage west wall
+                                disconnect_location:
+                                  type:
+                                  - string
+                                  - 'null'
+                                  description: Subpanel disconnect location
+                                  example: Garage west wall
+                                bus_rating:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  description: Rating of the bus in amperes.
+                                  example: 125
+                                  exclusiveMinimum: 0
+                                disconnect_size:
+                                  type:
+                                  - number
+                                  - 'null'
+                                  description: Size of the disconnect in amperes.
+                                  example: 100
+                                  exclusiveMinimum: 0
+                                notes:
+                                  type: string
+                                  description: Additional notes about the subpanel.
+                                  example: Broken latch needs to be replaced
+                                images:
+                                  description: List of images to associate with the subpanel data
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      url:
+                                        type: string
+                                        minLength: 1
+                                        format: uri
+                                        pattern: ^(https?)://
+                                        description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                        example: https://example.com/image.jpg
+                                      filename:
+                                        type: string
+                                        minLength: 1
+                                        description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                        example: image.jpg
+                                    required:
+                                    - url
+                              required:
+                              - location
+                              - disconnect_location
+                              - bus_rating
+                              - disconnect_size
+                              - notes
+                              - images
+                        required:
+                        - main_panel_location
+                        - main_bus_rating
+                        - main_breaker_rating
+                        - service_type
+                        - feeder_type
+                        - utility_meter_location
+                        - existing_grounding
+                        - existing_grounding_location
+                        - main_panel_manufacturer
+                        - images
+                        - notes
+                      roof:
+                        type: object
+                        properties:
+                          mounting_planes:
+                            description: Array of mounting planes to store with the site survey.
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                units_of_measurement:
+                                  type: string
+                                  minLength: 1
+                                  enum:
+                                  - Imperial
+                                  - Metric
+                                  description: The units of measurement to be used for the mounting planes. Uses the tenant default if not provided.
+                                  example: Imperial
+                                pitch:
+                                  type: number
+                                  minimum: 0
+                                  maximum: 90
+                                  description: The pitch of the mounting plane, measured in degrees.
+                                  example: 21
+                                azimuth:
+                                  type: number
+                                  minimum: 0
+                                  maximum: 360
+                                  description: The azimuth of the mounting plane, measured in degrees from North.
+                                  example: 180
+                                roof_type:
+                                  type: string
+                                  minLength: 1
+                                  enum:
+                                  - composition_shingles
+                                  - tile_flat_concrete
+                                  - tile_s_concrete
+                                  - tile_w_concrete
+                                  - tile_slate
+                                  - tile_clay
+                                  - rolled_asphalt
+                                  - metal_standing_seam
+                                  - metal_corrugated
+                                  - other
+                                  description: The roof type of the mounting plane. If "other", specify in `notes`.
+                                  example: composition_shingles
+                                framing_type:
+                                  type: string
+                                  minLength: 1
+                                  enum:
+                                  - trussed
+                                  - rafters
+                                  - other
+                                  description: The framing type of the mounting plane. If "other", specify in `notes`.
+                                  example: trussed
+                                rafter_size:
+                                  type: string
+                                  minLength: 1
+                                  enum:
+                                  - 2x4
+                                  - 2x6
+                                  - 2x8
+                                  - 2x10
+                                  - 2x12
+                                  - other
+                                  description: The rafter size for the mounting plane. If "other", specify in `notes`.
+                                  example: 2x4
+                                rafter_spacing:
+                                  type: number
+                                  description: The rafter spacing for the mounting plane. Provided in inches if units of measurement is Imperial or centimeters for Metric.
+                                  example: 24
+                                  exclusiveMinimum: 0
+                                notes:
+                                  type: string
+                                  description: Any additional notes for the mounting plane.
+                                  example: Water damage around vent pipe
+                                images:
+                                  description: List of images to associate with the mounting plane data.
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      url:
+                                        type: string
+                                        minLength: 1
+                                        format: uri
+                                        pattern: ^(https?)://
+                                        description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                        example: https://example.com/image.jpg
+                                      filename:
+                                        type: string
+                                        minLength: 1
+                                        description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                        example: image.jpg
+                                    required:
+                                    - url
+                              required:
+                              - pitch
+                              - azimuth
+                              - roof_type
+                              - framing_type
+                              - rafter_size
+                              - rafter_spacing
+                        required:
+                        - mounting_planes
+                    required:
+                    - id
+                    - project_id
+                    - status
+                    - created_at
+                    - roof
+                required:
+                - site_survey
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Site Surveys
+      operationId: updateSiteSurvey
+      summary: Update Site Survey Overview
+      description: 'Updates the overview of a site survey.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]
+
+
+        This endpoint is used to update metadata and overview attributes on a site survey.
+
+
+        Currently the only allowed overview field is `notes`.
+
+
+        To update other site survey attribtues, see:
+
+        - Update Site Survey Electrical Data
+
+        - Update Site Survey Electrical Subpanels
+
+        - Update Site Survey Mounting Planes
+
+        - Update Site Survey Status'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant the site survey belongs to
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to update overview for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_survey:
+                  type: object
+                  properties:
+                    report:
+                      description: PDF report to associate with the site survey
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          minLength: 1
+                          format: uri
+                          pattern: ^(https?)://
+                          description: URL of the report. If the filename field is not provided, the URL must contain a filename with a `.pdf` extension
+                          example: https://example.com/report.pdf
+                        filename:
+                          type: string
+                          minLength: 1
+                          description: The filename of the report. It must have a `.pdf` extension
+                          example: report.pdf
+                      required:
+                      - url
+                    notes:
+                      type: string
+                      description: Overall notes for the site survey.
+                      example: Corner lot. Easy access to mounting planes and main panel
+                    images:
+                      description: List of images to associate with the site survey
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                            minLength: 1
+                            format: uri
+                            pattern: ^(https?)://
+                            description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                            example: https://example.com/image.jpg
+                          filename:
+                            type: string
+                            minLength: 1
+                            description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                            example: image.jpg
+                        required:
+                        - url
+              required:
+              - site_survey
+      responses:
+        '200':
+          description: Overview successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site_survey:
+                    type: object
+                    properties:
+                      report:
+                        description: PDF report to associate with the site survey
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                            minLength: 1
+                            format: uri
+                            pattern: ^(https?)://
+                            description: URL of the report. If the filename field is not provided, the URL must contain a filename with a `.pdf` extension
+                            example: https://example.com/report.pdf
+                          filename:
+                            type: string
+                            minLength: 1
+                            description: The filename of the report. It must have a `.pdf` extension
+                            example: report.pdf
+                        required:
+                        - url
+                      notes:
+                        type: string
+                        description: Overall notes for the site survey.
+                        example: Corner lot. Easy access to mounting planes and main panel
+                      images:
+                        description: List of images to associate with the site survey
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              minLength: 1
+                              format: uri
+                              pattern: ^(https?)://
+                              description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: https://example.com/image.jpg
+                            filename:
+                              type: string
+                              minLength: 1
+                              description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: image.jpg
+                          required:
+                          - url
+                required:
+                - site_survey
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/site_surveys/{site_survey_id}/electrical:
+    put:
+      tags:
+      - Site Surveys
+      operationId: updateSiteSurveyElectricalData
+      summary: Update Site Survey Electrical Data
+      description: 'Updates electrical data on a site survey.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant the site survey belongs to.
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to update electrical data for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                electrical:
+                  description: Site survey electrical data.
+                  type: object
+                  properties:
+                    main_panel_location:
+                      type: string
+                      enum:
+                      - north_interior
+                      - north_exterior
+                      - south_interior
+                      - south_exterior
+                      - east_interior
+                      - east_exterior
+                      - west_interior
+                      - west_exterior
+                      - ne_interior
+                      - ne_exterior
+                      - nw_interior
+                      - nw_exterior
+                      - se_interior
+                      - se_exterior
+                      - sw_interior
+                      - sw_exterior
+                      - basement
+                      - garage
+                      - barn
+                      - pole_mounted
+                      - main_floor
+                      - roof_top
+                      description: The location of the main panel.
+                    main_bus_rating:
+                      type: number
+                      minimum: 0
+                      description: The rating of the main bus, in amperes.
+                      example: 200
+                    main_breaker_rating:
+                      type: number
+                      minimum: 0
+                      description: The rating of the main breaker, in amperes.
+                      example: 200
+                    service_type:
+                      type: string
+                      enum:
+                      - single_phase_3_wire
+                      - single_phase_2_wire
+                      - 3_phase_4_wire
+                      - 3_phase_3_wire
+                      description: The service type.
+                    feeder_type:
+                      type: string
+                      enum:
+                      - overhead
+                      - underground
+                      - pole_mounted
+                      - ct_cabinet
+                      - other
+                      description: The feeder type. If "other", specify in `notes`.
+                    utility_meter_location:
+                      type: string
+                      enum:
+                      - north_interior
+                      - north_exterior
+                      - south_interior
+                      - south_exterior
+                      - east_interior
+                      - east_exterior
+                      - west_interior
+                      - west_exterior
+                      - ne_interior
+                      - ne_exterior
+                      - nw_interior
+                      - nw_exterior
+                      - se_interior
+                      - se_exterior
+                      - sw_interior
+                      - sw_exterior
+                      - basement
+                      - garage
+                      - barn
+                      - pole_mounted
+                      - main_floor
+                      - roof_top
+                      description: The location of the utility meter.
+                    existing_grounding:
+                      type: string
+                      enum:
+                      - ground_rod
+                      - cold_water_pipe
+                      - ufer
+                      - other
+                      description: The method of the existing grounding. If "other", specify in `notes`.
+                    existing_grounding_location:
+                      type: string
+                      minLength: 1
+                      description: The location of the existing grounding.
+                      example: garage
+                    main_panel_manufacturer:
+                      type: string
+                      minLength: 1
+                      description: The manufacturer of the main panel.
+                      example: Square D
+                    images:
+                      description: List of images to associate with the electrical data
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                            minLength: 1
+                            format: uri
+                            pattern: ^(https?)://
+                            description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                            example: https://example.com/image.jpg
+                          filename:
+                            type: string
+                            minLength: 1
+                            description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                            example: image.jpg
+                        required:
+                        - url
+                    notes:
+                      type: string
+                      minLength: 1
+                      description: Additional notes for the site survey electrical data.
+                      example: Meter obscured by overgrown hedge
+              required:
+              - electrical
+      responses:
+        '200':
+          description: Site survey electrical data successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  electrical:
+                    description: Site survey electrical data.
+                    type: object
+                    properties:
+                      main_panel_location:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - north_interior
+                        - north_exterior
+                        - south_interior
+                        - south_exterior
+                        - east_interior
+                        - east_exterior
+                        - west_interior
+                        - west_exterior
+                        - ne_interior
+                        - ne_exterior
+                        - nw_interior
+                        - nw_exterior
+                        - se_interior
+                        - se_exterior
+                        - sw_interior
+                        - sw_exterior
+                        - basement
+                        - garage
+                        - barn
+                        - pole_mounted
+                        - main_floor
+                        - roof_top
+                        description: The location of the main panel.
+                      main_bus_rating:
+                        type:
+                        - number
+                        - 'null'
+                        minimum: 0
+                        description: The rating of the main bus, in amperes.
+                        example: 200
+                      main_breaker_rating:
+                        type:
+                        - number
+                        - 'null'
+                        minimum: 0
+                        description: The rating of the main breaker, in amperes.
+                        example: 200
+                      service_type:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - single_phase_3_wire
+                        - single_phase_2_wire
+                        - 3_phase_4_wire
+                        - 3_phase_3_wire
+                        description: The service type.
+                      feeder_type:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - overhead
+                        - underground
+                        - pole_mounted
+                        - ct_cabinet
+                        - other
+                        description: The feeder type. If "other", specify in `notes`.
+                      utility_meter_location:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - north_interior
+                        - north_exterior
+                        - south_interior
+                        - south_exterior
+                        - east_interior
+                        - east_exterior
+                        - west_interior
+                        - west_exterior
+                        - ne_interior
+                        - ne_exterior
+                        - nw_interior
+                        - nw_exterior
+                        - se_interior
+                        - se_exterior
+                        - sw_interior
+                        - sw_exterior
+                        - basement
+                        - garage
+                        - barn
+                        - pole_mounted
+                        - main_floor
+                        - roof_top
+                        description: The location of the utility meter.
+                      existing_grounding:
+                        type:
+                        - string
+                        - 'null'
+                        enum:
+                        - ground_rod
+                        - cold_water_pipe
+                        - ufer
+                        - other
+                        description: The method of the existing grounding. If "other", specify in `notes`.
+                      existing_grounding_location:
+                        type:
+                        - string
+                        - 'null'
+                        minLength: 1
+                        description: The location of the existing grounding.
+                        example: garage
+                      main_panel_manufacturer:
+                        type:
+                        - string
+                        - 'null'
+                        minLength: 1
+                        description: The manufacturer of the main panel.
+                        example: Square D
+                      images:
+                        description: List of images to associate with the electrical data
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              minLength: 1
+                              format: uri
+                              pattern: ^(https?)://
+                              description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: https://example.com/image.jpg
+                            filename:
+                              type: string
+                              minLength: 1
+                              description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: image.jpg
+                          required:
+                          - url
+                      notes:
+                        type: string
+                        description: Additional notes for the site survey electrical data.
+                        example: Meter obscured by overgrown hedge
+                    required:
+                    - main_panel_location
+                    - main_bus_rating
+                    - main_breaker_rating
+                    - service_type
+                    - feeder_type
+                    - utility_meter_location
+                    - existing_grounding
+                    - existing_grounding_location
+                    - main_panel_manufacturer
+                    - images
+                    - notes
+                required:
+                - electrical
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/site_surveys/{site_survey_id}/electrical/subpanels:
+    put:
+      tags:
+      - Site Surveys
+      operationId: updateSiteSurveyElectricalSubpanels
+      summary: Update Site Survey Electrical Subpanels
+      description: 'Update the list of supbpanels for a site survey. This will replace any previously uploaded subpanel data.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to update the subpanels for.
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to update the subpanels for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subpanels:
+                  description: List of electrical subpanels for the site survey.
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      location:
+                        type: string
+                        minLength: 1
+                        description: Subpanel location
+                        example: Garage west wall
+                      disconnect_location:
+                        type: string
+                        minLength: 1
+                        description: Subpanel disconnect location
+                        example: Garage west wall
+                      bus_rating:
+                        type: number
+                        description: Rating of the bus in amperes.
+                        example: 125
+                        exclusiveMinimum: 0
+                      disconnect_size:
+                        type: number
+                        description: Size of the disconnect in amperes.
+                        example: 100
+                        exclusiveMinimum: 0
+                      notes:
+                        type: string
+                        minLength: 1
+                        description: Additional notes about the subpanel.
+                        example: Broken latch needs to be replaced
+                      images:
+                        description: List of images to associate with the subpanel data
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              minLength: 1
+                              format: uri
+                              pattern: ^(https?)://
+                              description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: https://example.com/image.jpg
+                            filename:
+                              type: string
+                              minLength: 1
+                              description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: image.jpg
+                          required:
+                          - url
+              required:
+              - subpanels
+      responses:
+        '200':
+          description: Site Survey Electrical Subpanels successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subpanels:
+                    description: List of electrical subpanels for the site survey.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        location:
+                          type:
+                          - string
+                          - 'null'
+                          description: Subpanel location
+                          example: Garage west wall
+                        disconnect_location:
+                          type:
+                          - string
+                          - 'null'
+                          description: Subpanel disconnect location
+                          example: Garage west wall
+                        bus_rating:
+                          type:
+                          - number
+                          - 'null'
+                          description: Rating of the bus in amperes.
+                          example: 125
+                          exclusiveMinimum: 0
+                        disconnect_size:
+                          type:
+                          - number
+                          - 'null'
+                          description: Size of the disconnect in amperes.
+                          example: 100
+                          exclusiveMinimum: 0
+                        notes:
+                          type: string
+                          description: Additional notes about the subpanel.
+                          example: Broken latch needs to be replaced
+                        images:
+                          description: List of images to associate with the subpanel data
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              url:
+                                type: string
+                                minLength: 1
+                                format: uri
+                                pattern: ^(https?)://
+                                description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                example: https://example.com/image.jpg
+                              filename:
+                                type: string
+                                minLength: 1
+                                description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                example: image.jpg
+                            required:
+                            - url
+                      required:
+                      - location
+                      - disconnect_location
+                      - bus_rating
+                      - disconnect_size
+                      - notes
+                      - images
+                required:
+                - subpanels
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/site_surveys/{site_survey_id}/roofs/mounting_planes:
+    put:
+      tags:
+      - Site Surveys
+      operationId: updateSiteSurveyMountingPlanes
+      summary: Update Site Survey Mounting Planes
+      description: 'Updates mounting planes for a site survey. This will replace any previously uploaded mounting plane data.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant the site survey belongs to.
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to update mounting planes for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mounting_planes:
+                  description: Array of mounting planes to store with the site survey.
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      units_of_measurement:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - Imperial
+                        - Metric
+                        description: The units of measurement to be used for the mounting planes. Uses the tenant default if not provided.
+                        example: Imperial
+                      pitch:
+                        type: number
+                        minimum: 0
+                        maximum: 90
+                        description: The pitch of the mounting plane, measured in degrees.
+                        example: 21
+                      azimuth:
+                        type: number
+                        minimum: 0
+                        maximum: 360
+                        description: The azimuth of the mounting plane, measured in degrees from North.
+                        example: 180
+                      roof_type:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - composition_shingles
+                        - tile_flat_concrete
+                        - tile_s_concrete
+                        - tile_w_concrete
+                        - tile_slate
+                        - tile_clay
+                        - rolled_asphalt
+                        - metal_standing_seam
+                        - metal_corrugated
+                        - other
+                        description: The roof type of the mounting plane. If "other", specify in `notes`.
+                        example: composition_shingles
+                      framing_type:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - trussed
+                        - rafters
+                        - other
+                        description: The framing type of the mounting plane. If "other", specify in `notes`.
+                        example: trussed
+                      rafter_size:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - 2x4
+                        - 2x6
+                        - 2x8
+                        - 2x10
+                        - 2x12
+                        - other
+                        description: The rafter size for the mounting plane. If "other", specify in `notes`.
+                        example: 2x4
+                      rafter_spacing:
+                        type: number
+                        description: The rafter spacing for the mounting plane. Provided in inches if units of measurement is Imperial or centimeters for Metric.
+                        example: 24
+                        exclusiveMinimum: 0
+                      notes:
+                        type: string
+                        description: Any additional notes for the mounting plane.
+                        example: Water damage around vent pipe
+                      images:
+                        description: List of images to associate with the mounting plane data.
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              minLength: 1
+                              format: uri
+                              pattern: ^(https?)://
+                              description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: https://example.com/image.jpg
+                            filename:
+                              type: string
+                              minLength: 1
+                              description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                              example: image.jpg
+                          required:
+                          - url
+                    required:
+                    - pitch
+                    - azimuth
+                    - roof_type
+                    - framing_type
+                    - rafter_size
+                    - rafter_spacing
+              required:
+              - mounting_planes
+      responses:
+        '200':
+          description: Mounting planes successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mounting_planes:
+                    description: Array of mounting planes to store with the site survey.
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        units_of_measurement:
+                          type: string
+                          minLength: 1
+                          enum:
+                          - Imperial
+                          - Metric
+                          description: The units of measurement to be used for the mounting planes. Uses the tenant default if not provided.
+                          example: Imperial
+                        pitch:
+                          type: number
+                          minimum: 0
+                          maximum: 90
+                          description: The pitch of the mounting plane, measured in degrees.
+                          example: 21
+                        azimuth:
+                          type: number
+                          minimum: 0
+                          maximum: 360
+                          description: The azimuth of the mounting plane, measured in degrees from North.
+                          example: 180
+                        roof_type:
+                          type: string
+                          minLength: 1
+                          enum:
+                          - composition_shingles
+                          - tile_flat_concrete
+                          - tile_s_concrete
+                          - tile_w_concrete
+                          - tile_slate
+                          - tile_clay
+                          - rolled_asphalt
+                          - metal_standing_seam
+                          - metal_corrugated
+                          - other
+                          description: The roof type of the mounting plane. If "other", specify in `notes`.
+                          example: composition_shingles
+                        framing_type:
+                          type: string
+                          minLength: 1
+                          enum:
+                          - trussed
+                          - rafters
+                          - other
+                          description: The framing type of the mounting plane. If "other", specify in `notes`.
+                          example: trussed
+                        rafter_size:
+                          type: string
+                          minLength: 1
+                          enum:
+                          - 2x4
+                          - 2x6
+                          - 2x8
+                          - 2x10
+                          - 2x12
+                          - other
+                          description: The rafter size for the mounting plane. If "other", specify in `notes`.
+                          example: 2x4
+                        rafter_spacing:
+                          type: number
+                          description: The rafter spacing for the mounting plane. Provided in inches if units of measurement is Imperial or centimeters for Metric.
+                          example: 24
+                          exclusiveMinimum: 0
+                        notes:
+                          type: string
+                          description: Any additional notes for the mounting plane.
+                          example: Water damage around vent pipe
+                        images:
+                          description: List of images to associate with the mounting plane data.
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              url:
+                                type: string
+                                minLength: 1
+                                format: uri
+                                pattern: ^(https?)://
+                                description: 'URL of the image. If the filename field is not provided, the URL must contain a filename with one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                example: https://example.com/image.jpg
+                              filename:
+                                type: string
+                                minLength: 1
+                                description: 'The filename of the image that uses one of the following extensions: .jpg, .jpeg, .png, .gif, .webp'
+                                example: image.jpg
+                            required:
+                            - url
+                      required:
+                      - pitch
+                      - azimuth
+                      - roof_type
+                      - framing_type
+                      - rafter_size
+                      - rafter_spacing
+                required:
+                - mounting_planes
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/site_surveys/{site_survey_id}/status:
+    put:
+      tags:
+      - Site Surveys
+      operationId: updateSiteSurveyStatus
+      summary: Update Site Survey Status
+      description: 'Updates status for a site survey.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Site Surveys API is in beta. As a beta product, the API will not be supported via our normal support channels. You may also experience some gaps and changes as the product is refined and documentation is updated before general release."
+
+        }
+
+        [/block]
+
+
+        This endpoint is used to transition a site survey from one status to another, and validates conditions for that transition.
+
+
+        Currently the only allowed status transition is from `in-progress` to `completed`, with the follow validations:
+
+
+        - `electrical.main_panel_location` is filled out.
+
+        - `electrical.main_bus_rating` is filled out.
+
+        - `electrical.main_breaker_rating` is filled out.
+
+        - For each mounting plane in `roofs.mounting_plane`:
+
+        - `pitch` is filled out.
+
+        - `azimuth` is filled out.
+
+        - `roof_type` is filled out.
+
+        - `framing_type` is filled out.
+
+        - `rafter_size` is filled out.
+
+        - `rafter_spacing` is filled out.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant the site survey belongs to
+      - name: site_survey_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the site survey to update status for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_survey:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      minLength: 1
+                      enum:
+                      - completed
+                      description: The status of the site survey request. Currently only `completed` is allowed.
+                  required:
+                  - status
+              required:
+              - site_survey
+      responses:
+        '200':
+          description: Status successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  site_survey:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        minLength: 1
+                        enum:
+                        - completed
+                        description: The status of the site survey request. Currently only `completed` is allowed.
+                    required:
+                    - status
+                required:
+                - site_survey
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

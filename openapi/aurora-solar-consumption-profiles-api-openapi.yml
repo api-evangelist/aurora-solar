@@ -1,169 +1,584 @@
 openapi: 3.2.0
 info:
-  title: Aurora Solar Consumption Profiles API
-  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
-  version: v2024.05
+  title: Sync Consumption Profiles API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
   contact:
-    name: Aurora Solar Developer Platform
-    url: https://docs.aurorasolar.com
-  license:
-    name: Proprietary
-    url: https://aurorasolar.com/terms-of-service/
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
 servers:
-- url: https://api.aurorasolar.com
-  description: Production
 - url: https://api-sandbox.aurorasolar.com
-  description: Sandbox
+  description: Sandbox Environment
 security:
 - bearerAuth: []
 tags:
 - name: Consumption Profiles
-  description: Energy consumption profiles and utility bills.
 paths:
-  /tenants/{tenant_id}/projects/{project_id}/consumption_profile:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - $ref: '#/components/parameters/ProjectId'
+  /tenants/{tenant_id}/projects/{id}/consumption_profile:
     get:
+      tags:
+      - Consumption Profiles
+      summary: Retrieve Consumption Profile
+      description: Retrieve the consumption profile for a project.
       operationId: retrieveConsumptionProfile
-      tags:
-      - Consumption Profiles
-      summary: Retrieve consumption profile
-      description: Retrieves the energy consumption profile for a project.
-      x-modeled: true
-      responses:
-        '200':
-          description: The consumption profile.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsumptionProfile'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      operationId: updateConsumptionProfile
-      tags:
-      - Consumption Profiles
-      summary: Update consumption profile
-      description: Updates the energy consumption profile for a project.
-      x-modeled: true
-      requestBody:
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ConsumptionProfile'
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the project to retrieve the consumption profile for.
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: The updated consumption profile.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConsumptionProfile'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-  /tenants/{tenant_id}/projects/{project_id}/utility_bills:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - $ref: '#/components/parameters/ProjectId'
-    get:
-      operationId: listUtilityBills
-      tags:
-      - Consumption Profiles
-      summary: List utility bills
-      description: Lists the utility bills uploaded for a project.
-      x-modeled: true
-      responses:
-        '200':
-          description: A list of utility bills.
+          description: Consumption Profile successfully retrieved.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  utility_bills:
-                    type: array
-                    items:
-                      type: object
-                      additionalProperties: true
+                  consumption_profile:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the consumption profile.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the project that the consumption profile belongs to.
+                      location:
+                        type: string
+                        description: Name of a nearby weather station that was used as the source of weather data.
+                        example: Mountain View Moffett Fld
+                      utility:
+                        type: string
+                        description: Name of the utility company that the homeowner is connected to before going solar.
+                        example: Pacific Gas & Electric Co
+                      utility_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID of the utility company that the homeowner is connected to. Field is omitted if utility rate is derived from Genability.
+                      utility_rate:
+                        type: string
+                        description: Name of the specific utility rate/plan that the homeowner is on, before going solar.
+                        example: E-1 - Baseline Region R
+                      utility_rate_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID of the specific utility rate/plan that the homeowner is on, before going solar. Field is omitted if utility rate is derived from Genability.
+                      utility_rate_version:
+                        type: string
+                        description: Specific time interval that the homeowner was referring to, when providing energy (kWh) or bill information of a given month. The effective time interval of the utility rate that was used in the calculation of the consumption profile.
+                        example: 28 Feb 2015 – 30 Aug 2015
+                      utility_rate_version_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID of the specific time interval that the homeowner was referring to, when providing energy (kWh) or bill information of a given month.
+                      utility_rate_escalation:
+                        type: number
+                        format: double
+                        description: The annual escalation of utility rates for the project, as a percentage (`4.0` means 4%).
+                        example: 4
+                      input_mode:
+                        type: string
+                        enum:
+                        - bill
+                        - energy
+                        description: Indicates whether the user inputed "bill" or "energy" values during the creation of the consumption profile.
+                      input_values:
+                        type: array
+                        description: Specifies which values of either "bill" or "energy" were manually entered by the user. "null" is returned for values that were computed by Aurora without the explicit input of the user.
+                        items:
+                          type: number
+                        example:
+                        - 90
+                        - null
+                        - 90.25
+                        - 90.5
+                        - 90.75
+                        - 90.75
+                        - 91
+                        - 92
+                        - 92.25
+                        - 92.5
+                        - 93
+                        - 93.25
+                      monthly_energy:
+                        type: array
+                        description: Monthly consumption of energy in kWh from Jan - Dec.
+                        items:
+                          type: number
+                        example: null
+                      monthly_bill:
+                        type: array
+                        description: Monthly bill, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec.
+                        items:
+                          type: number
+                        example: null
+                      hourly_energy:
+                        type: array
+                        description: Energy consumption in kWh broken down by hour (8760 values)
+                        items:
+                          type: number
+                        example: null
+                      efficiency_packages:
+                        type: array
+                        description: A list of efficiency packages applied to this consumption profile.
+                        items:
+                          type: object
+                          properties:
+                            efficiency_package_name:
+                              type: string
+                              description: Name of the efficiency package.
+                            efficiency_package_value:
+                              type: number
+                              format: double
+                              description: Value in percent of the efficiency package, on a 0-100 scale.
+                        example: []
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Consumption Profiles
+      summary: Update Consumption Profile
+      description: 'Update the existing consumption profile for a project.
+
+
+        ---
+
+
+        Each request must contain `utility_rate_escalation`, one of the energy consumption values below, or both.
+
+
+        ---
+
+
+        **Energy consumption.** A request accepts *only one* of the following values.
+
+
+        - `monthly_energy`: An array of exactly 12 monthly energy values in kWh. Null values are allowed and represented as "null".
+
+
+        - `monthly_bill`: An array of exactly 12 monthly bill values, denominated in the tenant''s configured currency (see `currency` on `GET /tenants/{id}`). Null values are allowed and represented as "null".
+
+
+        - `interval_data`: An array of exactly (8760, 8784, 17520, 17568, 35040, or 35136) energy values in kWh. Null values are allowed and represented as "null".
+
+        - The array must contain at least 1 complete month of contiguous non-null values.
+
+        - The first array value must correspond to the first interval of the year beginning at 1 January 00:00.
+
+
+        - `annual_energy`: The total annual energy consumption in kWh. Aurora distributes it across the year using a typical load profile for the project''s location, so monthly values follow the expected seasonal variation.
+
+
+        - `annual_bill`: The total annual pre-solar electricity bill, denominated in the tenant''s configured currency. Aurora finds the annual energy consumption whose bills, under the project''s pre-solar utility rate, sum to this amount, then distributes that energy across the year in the same way as `annual_energy`.
+
+        - The project must have a pre-solar utility rate. The conversion uses the rate set at the time of the request; changing the rate later does not change the consumption profile.
+
+
+        Bill inputs (`monthly_bill`, `annual_bill`) are converted to energy using energy and fixed charges only. Demand charges are not included in the conversion, so on a rate with demand charges the returned `monthly_bill` values are higher than the bills provided.
+
+
+        Annual inputs require a typical load profile for the project''s location. The response returns `input_values` as null for every month, since all monthly values are estimated.
+
+
+        ---
+
+
+        **Utility rate escalation.** `utility_rate_escalation` is independent of the energy consumption values. It can be sent on its own, which leaves the consumption profile unchanged, or together with one energy consumption value. If the request is rejected, neither is applied.
+
+
+        - `utility_rate_escalation`: The annual escalation of utility rates, as a percentage (`4.0` means 4%). New projects start with the tenant''s default for the project''s type and location. A value must fall within the tenant''s configured minimum and maximum for the project, otherwise the request is rejected with a 422 error. The range is only checked when the value changes, so sending the project''s current value is always accepted. `null` is treated as not provided, so the value cannot be reset to the tenant default through the API. Financing options that use an integration-provided escalation rate ignore this value.
+
+
+        Consumption profiles are only supported for residential projects.'
+      operationId: updateConsumptionProfile
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the project to update the consumption profile for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consumption_profile:
+                  type: object
+                  description: Consumption profile fields to update.
+                  properties:
+                    monthly_bill:
+                      type: array
+                      description: An array of the monthly bills, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`). Null values allowed as "null".
+                      minItems: 12
+                      maxItems: 12
+                      items:
+                        type: number
+                      example:
+                      - 90
+                      - 'null'
+                      - 90.25
+                      - 90.5
+                      - 90.75
+                      - 90.75
+                      - 91
+                      - 92
+                      - 92.25
+                      - 92.5
+                      - 93
+                      - 93.25
+                    monthly_energy:
+                      type: array
+                      description: An array of the monthly energy in kWh. Null values allowed as "null".
+                      minItems: 12
+                      maxItems: 12
+                      items:
+                        type: number
+                      example: null
+                    interval_data:
+                      type: array
+                      description: An array of the energy values for each 15/30/60 minute interval from the beginning to end of a common/leap year, in kWh. Null values allowed as "null". Array length must be exactly 8760, 8784, 17520, 17568, 35040, or 35136 values.
+                      items:
+                        type: number
+                      example: null
+                    annual_energy:
+                      type: number
+                      description: The total annual energy consumption in kWh. Must be greater than 0 and at most 1,000,000. Distributed across the year using a typical load profile for the project's location.
+                      maximum: 1000000
+                      example: null
+                      exclusiveMinimum: 0
+                    annual_bill:
+                      type: number
+                      description: The total annual pre-solar electricity bill, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`). Must be greater than 0, at least the lowest possible annual bill under the project's pre-solar utility rate (fixed charges plus any pool or EV usage), and at most the annual bill for 1,000,000 kWh. Converted to annual energy using the project's pre-solar utility rate, then distributed across the year using a typical load profile for the project's location.
+                      example: null
+                      exclusiveMinimum: 0
+                    utility_rate_escalation:
+                      type: number
+                      format: double
+                      description: The annual escalation of utility rates for the project, as a percentage (`4.0` means 4%). Can be sent on its own or together with one energy consumption value. Must be within the tenant's configured minimum and maximum for the project when the value changes. `null` is treated as not provided.
+                      example: 4
+      responses:
+        '200':
+          description: Project successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  consumption_profile:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the consumption profile.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the project that the consumption profile belongs to.
+                      location:
+                        type: string
+                        description: Name of a nearby weather station that was used as the source of weather data.
+                        example: Mountain View Moffett Fld
+                      utility:
+                        type: string
+                        description: Name of the utility company that the homeowner is connected to before going solar.
+                        example: Pacific Gas & Electric Co
+                      utility_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID of the utility company that the homeowner is connected to. Field is omitted if utility rate is derived from Genability.
+                      utility_rate:
+                        type: string
+                        description: Name of the specific utility rate/plan that the homeowner is on, before going solar.
+                        example: E-1 - Baseline Region R
+                      utility_rate_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID of the specific utility rate/plan that the homeowner is on, before going solar. Field is omitted if utility rate is derived from Genability.
+                      utility_rate_version:
+                        type: string
+                        description: Specific time interval that the homeowner was referring to, when providing energy (kWh) or bill information of a given month. The effective time interval of the utility rate that was used in the calculation of the consumption profile.
+                        example: 28 Feb 2015 – 30 Aug 2015
+                      utility_rate_version_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID of the specific time interval that the homeowner was referring to, when providing energy (kWh) or bill information of a given month.
+                      utility_rate_escalation:
+                        type: number
+                        format: double
+                        description: The annual escalation of utility rates for the project, as a percentage (`4.0` means 4%).
+                        example: 4
+                      input_mode:
+                        type: string
+                        enum:
+                        - bill
+                        - energy
+                        description: Indicates whether the user inputed "bill" or "energy" values during the creation of the consumption profile.
+                      input_values:
+                        type: array
+                        description: Specifies which values of either "bill" or "energy" were manually entered by the user. "null" is returned for values that were computed by Aurora without the explicit input of the user.
+                        items:
+                          type: number
+                        example:
+                        - 90
+                        - null
+                        - 90.25
+                        - 90.5
+                        - 90.75
+                        - 90.75
+                        - 91
+                        - 92
+                        - 92.25
+                        - 92.5
+                        - 93
+                        - 93.25
+                      monthly_energy:
+                        type: array
+                        description: Monthly consumption of energy in kWh from Jan - Dec.
+                        items:
+                          type: number
+                        example: null
+                      monthly_bill:
+                        type: array
+                        description: Monthly bill, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec.
+                        items:
+                          type: number
+                        example: null
+                      hourly_energy:
+                        type: array
+                        description: Energy consumption in kWh broken down by hour (8760 values)
+                        items:
+                          type: number
+                        example: null
+                      efficiency_packages:
+                        type: array
+                        description: A list of efficiency packages applied to this consumption profile.
+                        items:
+                          type: object
+                          properties:
+                            efficiency_package_name:
+                              type: string
+                              description: Name of the efficiency package.
+                            efficiency_package_value:
+                              type: number
+                              format: double
+                              description: Value in percent of the efficiency package, on a 0-100 scale.
+                        example: []
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
 components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-    ConsumptionProfile:
-      type: object
-      properties:
-        project_id:
-          type: string
-        annual_consumption_kwh:
-          type: number
-          format: double
-        monthly_consumption_kwh:
-          type: array
-          items:
-            type: number
-            format: double
-        utility_rate_name:
-          type: string
-        source:
-          type: string
-          description: How the profile was derived (for example utility_bill or manual).
-  parameters:
-    ProjectId:
-      name: project_id
-      in: path
-      required: true
-      description: The project ID.
-      schema:
-        type: string
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
+      bearerFormat: header

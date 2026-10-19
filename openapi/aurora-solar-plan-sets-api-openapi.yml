@@ -1,0 +1,1204 @@
+openapi: 3.2.0
+info:
+  title: Sync Plan Sets API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Plan Sets
+paths:
+  /tenants/{tenant_id}/plan_set_requests:
+    post:
+      tags:
+      - Plan Sets
+      summary: Create Plan Set Request
+      description: 'Create a new plan set request.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Plan Set Requests API is in limited release at this time, and is subject to change. If you are interested in accessing this API, please contact your Aurora account team."
+
+        }
+
+        [/block]
+
+        A plan set request contains information about a project necessary for Aurora to create a plan set document.
+
+
+        Creating a new plan set request requires the following:
+
+        - The id of a design that is ready to install. The design must include modules, and will be more accurate if the stringing and components are already present.
+
+        - The project that the design is associated with must have at least one image or document uploaded to the project as a project asset (see Create Project Asset).
+
+
+        All new plan set requests are created in `draft` status. See Plan Sets for additional information on statuses.'
+      operationId: createPlanSetRequest
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to create the plan set request in.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plan_set_request:
+                  type: object
+                  description: Plan set request to create.
+                  allOf:
+                  - type: object
+                    properties:
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design that represents the system to be installed. The referenced design must have modules.
+                    allOf:
+                    - type: object
+                      properties:
+                        project_information:
+                          allOf:
+                          - type: object
+                            properties:
+                              ahj_notes_or_setbacks:
+                                type: string
+                                description: Notes relating to AHJ requirements or setback requirements.
+                                example: Plans need to show dimensions from roof edges to modules.
+                              contractor_name:
+                                type: string
+                                description: Project contractor name.
+                                example: Jane Doe
+                              contractor_license_number:
+                                type: string
+                                description: License number for project contractor.
+                              contractor_license_type:
+                                type: string
+                                description: License type for project contractor.
+                              contractor_address:
+                                type: string
+                                description: Mailing address for project contractor.
+                                example: 434 Brannan St, San Francisco, CA, USA
+                              contractor_phone:
+                                type: string
+                                description: Phone number for project contractor.
+                                example: (415) 360-9291
+                        electrical_information:
+                          allOf:
+                          - type: object
+                            properties:
+                              main_panel_location:
+                                type: string
+                                description: The location of the main service panel.
+                                example: Below the meter
+                              main_bus_rating:
+                                type: number
+                                format: integer
+                                description: Busbar rating of the main service panel, in amperes. Must be a positive number.
+                                example: 125
+                                enum:
+                                - 30
+                                - 40
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 100
+                                - 125
+                                - 150
+                                - 200
+                                - 225
+                                - 400
+                              main_breaker_rating:
+                                type: number
+                                format: integer
+                                description: Amperage rating of the main service panel disconnect.
+                                example: 100
+                                enum:
+                                - 15
+                                - 20
+                                - 25
+                                - 30
+                                - 35
+                                - 40
+                                - 45
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 90
+                                - 100
+                                - 110
+                                - 125
+                                - 150
+                                - 175
+                                - 200
+                                - 225
+                                - 400
+                              service_type:
+                                type: string
+                                description: The type of wiring and phase configuration supplying power to the structure from the utility.
+                                enum:
+                                - single-phase-3-wire-120-240v
+                                - single-phase-2-wire-120-240v
+                                - 3-phase-4-wire-208v
+                                - 3-phase-3-wire-480v
+                              feeder_type:
+                                type: string
+                                description: The way the service conductors are fed to the structure.
+                                enum:
+                                - overhead
+                                - underground
+                                - pole-mounted
+                                - ct-cabinet
+                                - other
+                              utility_meter_location:
+                                type: string
+                                description: Location of the utility meter in relation to the structure.
+                                enum:
+                                - north-interior
+                                - north-exterior
+                                - south-interior
+                                - south-exterior
+                                - east-interior
+                                - east-exterior
+                                - west-interior
+                                - west-exterior
+                                - ne-interior
+                                - ne-exterior
+                                - nw-interior
+                                - nw-exterior
+                                - se-interior
+                                - se-exterior
+                                - sw-interior
+                                - sw-exterior
+                                - basement
+                                - garage
+                                - barn
+                                - pole-mounted
+                                - main-floor
+                                - roof-top
+                              existing_grounding:
+                                type: string
+                                description: The existing means of electrical grounding for the structure.
+                                enum:
+                                - ground-rod
+                                - cold-water-pipe
+                                - ufer
+                                - other
+                              existing_grounding_location:
+                                type: string
+                                description: Location of the existing grounding means.
+                                example: Below the meter
+                              main_service_panel_manufacturer:
+                                type: string
+                                description: The manufacturer of the main service panel.
+                                example: Square D
+                              main_panel_upgrade:
+                                type: boolean
+                                description: To indicate if a main panel upgrade is desired in the plan set design.
+                                example: true
+                              main_panel_upgrade_bus_rating:
+                                type: number
+                                format: integer
+                                description: Busbar rating of the new main service panel to be installed, in amperes.
+                                example: 225
+                                enum:
+                                - 30
+                                - 40
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 100
+                                - 125
+                                - 150
+                                - 200
+                                - 225
+                                - 400
+                              main_panel_upgrade_main_breaker_rating:
+                                type: number
+                                format: integer
+                                description: Main service panel disconnect rating of the new main service panel to be installed, in amperes.
+                                example: 200
+                                enum:
+                                - 15
+                                - 20
+                                - 25
+                                - 30
+                                - 35
+                                - 40
+                                - 45
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 90
+                                - 100
+                                - 110
+                                - 125
+                                - 150
+                                - 175
+                                - 200
+                                - 225
+                                - 400
+                              electrical_notes:
+                                type: string
+                                description: Any relevant notes about the electrical configuration.
+                                example: Thin breakers to make space for the PV breaker.
+                            required:
+                            - main_panel_location
+                            - main_bus_rating
+                    required:
+                    - design_id
+                    - electrical_information
+              required:
+              - plan_set_request
+      responses:
+        '200':
+          description: Plan Set Request successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan_set_request:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the plan set request within Aurora.
+                      design_cad_view_url:
+                        type: string
+                        description: A link to the CAD view of the design the plan set request was created for.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54/designs/4406e8c7-5f3d-4037-8bc4-ea84aea8710c/cad
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design the plan set request was created for.
+                      plan_set_intake_form_url:
+                        type: string
+                        description: A link to the intake form for the plan set request.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54/plan-set/7ff13d71-e70f-4bcd-b65e-a3c4c5444d9c
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the project the plan set request was created for.
+                      project_overview_url:
+                        type: string
+                        description: A link to the project overview of the project the plan set request was created for.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54
+                      rejection_reasons:
+                        allOf:
+                        - type: array
+                          items:
+                            type: object
+                            properties:
+                              reason:
+                                type: string
+                                description: The reason why the plan set request was rejected.
+                                enum:
+                                - missing_information
+                                - outside_scope
+                                - other
+                                example: outside_scope
+                              sub_reasons:
+                                type: array
+                                description: Additional information related to the rejection reason.
+                                items:
+                                  type: string
+                                  enum:
+                                  - Commercial project
+                                  - Includes storage
+                                  - Includes ground mount
+                      status:
+                        type: string
+                        description: The status of the plan set request.
+                        enum:
+                        - draft
+                        - submitted
+                        - completed
+                        - rejected
+                    allOf:
+                    - type: object
+                      properties:
+                        project_information:
+                          allOf:
+                          - type: object
+                            properties:
+                              ahj_notes_or_setbacks:
+                                type: string
+                                description: Notes relating to AHJ requirements or setback requirements.
+                                example: Plans need to show dimensions from roof edges to modules.
+                              contractor_name:
+                                type: string
+                                description: Project contractor name.
+                                example: Jane Doe
+                              contractor_license_number:
+                                type: string
+                                description: License number for project contractor.
+                              contractor_license_type:
+                                type: string
+                                description: License type for project contractor.
+                              contractor_address:
+                                type: string
+                                description: Mailing address for project contractor.
+                                example: 434 Brannan St, San Francisco, CA, USA
+                              contractor_phone:
+                                type: string
+                                description: Phone number for project contractor.
+                                example: (415) 360-9291
+                        electrical_information:
+                          allOf:
+                          - type: object
+                            properties:
+                              main_panel_location:
+                                type: string
+                                description: The location of the main service panel.
+                                example: Below the meter
+                              main_bus_rating:
+                                type: number
+                                format: integer
+                                description: Busbar rating of the main service panel, in amperes. Must be a positive number.
+                                example: 125
+                                enum:
+                                - 30
+                                - 40
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 100
+                                - 125
+                                - 150
+                                - 200
+                                - 225
+                                - 400
+                              main_breaker_rating:
+                                type: number
+                                format: integer
+                                description: Amperage rating of the main service panel disconnect.
+                                example: 100
+                                enum:
+                                - 15
+                                - 20
+                                - 25
+                                - 30
+                                - 35
+                                - 40
+                                - 45
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 90
+                                - 100
+                                - 110
+                                - 125
+                                - 150
+                                - 175
+                                - 200
+                                - 225
+                                - 400
+                              service_type:
+                                type: string
+                                description: The type of wiring and phase configuration supplying power to the structure from the utility.
+                                enum:
+                                - single-phase-3-wire-120-240v
+                                - single-phase-2-wire-120-240v
+                                - 3-phase-4-wire-208v
+                                - 3-phase-3-wire-480v
+                              feeder_type:
+                                type: string
+                                description: The way the service conductors are fed to the structure.
+                                enum:
+                                - overhead
+                                - underground
+                                - pole-mounted
+                                - ct-cabinet
+                                - other
+                              utility_meter_location:
+                                type: string
+                                description: Location of the utility meter in relation to the structure.
+                                enum:
+                                - north-interior
+                                - north-exterior
+                                - south-interior
+                                - south-exterior
+                                - east-interior
+                                - east-exterior
+                                - west-interior
+                                - west-exterior
+                                - ne-interior
+                                - ne-exterior
+                                - nw-interior
+                                - nw-exterior
+                                - se-interior
+                                - se-exterior
+                                - sw-interior
+                                - sw-exterior
+                                - basement
+                                - garage
+                                - barn
+                                - pole-mounted
+                                - main-floor
+                                - roof-top
+                              existing_grounding:
+                                type: string
+                                description: The existing means of electrical grounding for the structure.
+                                enum:
+                                - ground-rod
+                                - cold-water-pipe
+                                - ufer
+                                - other
+                              existing_grounding_location:
+                                type: string
+                                description: Location of the existing grounding means.
+                                example: Below the meter
+                              main_service_panel_manufacturer:
+                                type: string
+                                description: The manufacturer of the main service panel.
+                                example: Square D
+                              main_panel_upgrade:
+                                type: boolean
+                                description: To indicate if a main panel upgrade is desired in the plan set design.
+                                example: true
+                              main_panel_upgrade_bus_rating:
+                                type: number
+                                format: integer
+                                description: Busbar rating of the new main service panel to be installed, in amperes.
+                                example: 225
+                                enum:
+                                - 30
+                                - 40
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 100
+                                - 125
+                                - 150
+                                - 200
+                                - 225
+                                - 400
+                              main_panel_upgrade_main_breaker_rating:
+                                type: number
+                                format: integer
+                                description: Main service panel disconnect rating of the new main service panel to be installed, in amperes.
+                                example: 200
+                                enum:
+                                - 15
+                                - 20
+                                - 25
+                                - 30
+                                - 35
+                                - 40
+                                - 45
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 90
+                                - 100
+                                - 110
+                                - 125
+                                - 150
+                                - 175
+                                - 200
+                                - 225
+                                - 400
+                              electrical_notes:
+                                type: string
+                                description: Any relevant notes about the electrical configuration.
+                                example: Thin breakers to make space for the PV breaker.
+                            required:
+                            - main_panel_location
+                            - main_bus_rating
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Provided design was not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The design with id db79f16a-8711-4ad4-a0eb-e370eee84092 could not be found
+        '409':
+          description: A plan set request already exists for the project.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 25a60c55-9578-4780-99c3-103b6806a1f9 already has a plan set request with id 7db5dd13-9784-49e9-a279-f79e37e6edd3
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: design_id is a required field
+                    - message: The design with id db79f16a-8711-4ad4-a0eb-e370eee84092 has no modules. Please add modules to your design and try again.
+                    - message: The project with id 25a60c55-9578-4780-99c3-103b6806a1f9 has no assets. Please upload at least one image or document to the project as a project asset and try again.
+                    - message: electrical_information.main_panel_location is a required field
+                    - message: electrical_information.main_bus_rating is a required field
+                    - message: electrical_information.main_bus_rating must be a positive number
+  /tenants/{tenant_id}/plan_set_requests/{id}:
+    get:
+      tags:
+      - Plan Sets
+      summary: Retrieve Plan Set Request
+      description: 'Retrieve a plan set request.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Plan Set Requests API is in limited release at this time, and is subject to change. If you are interested in accessing this API, please contact your Aurora account team."
+
+        }
+
+        [/block]'
+      operationId: retrievePlanSetRequest
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the plan set request was submitted for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the plan set request to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Plan Set Request successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan_set_request:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the plan set request within Aurora.
+                      design_cad_view_url:
+                        type: string
+                        description: A link to the CAD view of the design the plan set request was created for.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54/designs/4406e8c7-5f3d-4037-8bc4-ea84aea8710c/cad
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the design the plan set request was created for.
+                      plan_set_intake_form_url:
+                        type: string
+                        description: A link to the intake form for the plan set request.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54/plan-set/7ff13d71-e70f-4bcd-b65e-a3c4c5444d9c
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: The ID of the project the plan set request was created for.
+                      project_overview_url:
+                        type: string
+                        description: A link to the project overview of the project the plan set request was created for.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54
+                      rejection_reasons:
+                        allOf:
+                        - type: array
+                          items:
+                            type: object
+                            properties:
+                              reason:
+                                type: string
+                                description: The reason why the plan set request was rejected.
+                                enum:
+                                - missing_information
+                                - outside_scope
+                                - other
+                                example: outside_scope
+                              sub_reasons:
+                                type: array
+                                description: Additional information related to the rejection reason.
+                                items:
+                                  type: string
+                                  enum:
+                                  - Commercial project
+                                  - Includes storage
+                                  - Includes ground mount
+                      status:
+                        type: string
+                        description: The status of the plan set request.
+                        enum:
+                        - draft
+                        - submitted
+                        - completed
+                        - rejected
+                    allOf:
+                    - type: object
+                      properties:
+                        project_information:
+                          allOf:
+                          - type: object
+                            properties:
+                              ahj_notes_or_setbacks:
+                                type: string
+                                description: Notes relating to AHJ requirements or setback requirements.
+                                example: Plans need to show dimensions from roof edges to modules.
+                              contractor_name:
+                                type: string
+                                description: Project contractor name.
+                                example: Jane Doe
+                              contractor_license_number:
+                                type: string
+                                description: License number for project contractor.
+                              contractor_license_type:
+                                type: string
+                                description: License type for project contractor.
+                              contractor_address:
+                                type: string
+                                description: Mailing address for project contractor.
+                                example: 434 Brannan St, San Francisco, CA, USA
+                              contractor_phone:
+                                type: string
+                                description: Phone number for project contractor.
+                                example: (415) 360-9291
+                        electrical_information:
+                          allOf:
+                          - type: object
+                            properties:
+                              main_panel_location:
+                                type: string
+                                description: The location of the main service panel.
+                                example: Below the meter
+                              main_bus_rating:
+                                type: number
+                                format: integer
+                                description: Busbar rating of the main service panel, in amperes. Must be a positive number.
+                                example: 125
+                                enum:
+                                - 30
+                                - 40
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 100
+                                - 125
+                                - 150
+                                - 200
+                                - 225
+                                - 400
+                              main_breaker_rating:
+                                type: number
+                                format: integer
+                                description: Amperage rating of the main service panel disconnect.
+                                example: 100
+                                enum:
+                                - 15
+                                - 20
+                                - 25
+                                - 30
+                                - 35
+                                - 40
+                                - 45
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 90
+                                - 100
+                                - 110
+                                - 125
+                                - 150
+                                - 175
+                                - 200
+                                - 225
+                                - 400
+                              service_type:
+                                type: string
+                                description: The type of wiring and phase configuration supplying power to the structure from the utility.
+                                enum:
+                                - single-phase-3-wire-120-240v
+                                - single-phase-2-wire-120-240v
+                                - 3-phase-4-wire-208v
+                                - 3-phase-3-wire-480v
+                              feeder_type:
+                                type: string
+                                description: The way the service conductors are fed to the structure.
+                                enum:
+                                - overhead
+                                - underground
+                                - pole-mounted
+                                - ct-cabinet
+                                - other
+                              utility_meter_location:
+                                type: string
+                                description: Location of the utility meter in relation to the structure.
+                                enum:
+                                - north-interior
+                                - north-exterior
+                                - south-interior
+                                - south-exterior
+                                - east-interior
+                                - east-exterior
+                                - west-interior
+                                - west-exterior
+                                - ne-interior
+                                - ne-exterior
+                                - nw-interior
+                                - nw-exterior
+                                - se-interior
+                                - se-exterior
+                                - sw-interior
+                                - sw-exterior
+                                - basement
+                                - garage
+                                - barn
+                                - pole-mounted
+                                - main-floor
+                                - roof-top
+                              existing_grounding:
+                                type: string
+                                description: The existing means of electrical grounding for the structure.
+                                enum:
+                                - ground-rod
+                                - cold-water-pipe
+                                - ufer
+                                - other
+                              existing_grounding_location:
+                                type: string
+                                description: Location of the existing grounding means.
+                                example: Below the meter
+                              main_service_panel_manufacturer:
+                                type: string
+                                description: The manufacturer of the main service panel.
+                                example: Square D
+                              main_panel_upgrade:
+                                type: boolean
+                                description: To indicate if a main panel upgrade is desired in the plan set design.
+                                example: true
+                              main_panel_upgrade_bus_rating:
+                                type: number
+                                format: integer
+                                description: Busbar rating of the new main service panel to be installed, in amperes.
+                                example: 225
+                                enum:
+                                - 30
+                                - 40
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 100
+                                - 125
+                                - 150
+                                - 200
+                                - 225
+                                - 400
+                              main_panel_upgrade_main_breaker_rating:
+                                type: number
+                                format: integer
+                                description: Main service panel disconnect rating of the new main service panel to be installed, in amperes.
+                                example: 200
+                                enum:
+                                - 15
+                                - 20
+                                - 25
+                                - 30
+                                - 35
+                                - 40
+                                - 45
+                                - 50
+                                - 60
+                                - 70
+                                - 80
+                                - 90
+                                - 100
+                                - 110
+                                - 125
+                                - 150
+                                - 175
+                                - 200
+                                - 225
+                                - 400
+                              electrical_notes:
+                                type: string
+                                description: Any relevant notes about the electrical configuration.
+                                example: Thin breakers to make space for the PV breaker.
+                            required:
+                            - main_panel_location
+                            - main_bus_rating
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Plan set request was not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The plan_set_request with id 7db5dd13-9784-49e9-a279-f79e37e6edd3 could not be found
+  /tenants/{tenant_id}/plan_set_requests/{plan_set_request_id}/plan_set:
+    get:
+      tags:
+      - Plan Sets
+      summary: Retrieve Plan Set
+      description: 'Retrieve documents for a plan set request.
+
+
+        ---
+
+
+        [block:callout]
+
+        {
+
+        "type": "warning",
+
+        "body": "Please note that the Plan Set Requests API is in limited release at this time, and is subject to change. If you are interested in accessing this API, please contact your Aurora account team."
+
+        }
+
+        [/block]
+
+        Once a plan set request is completed, this will return a link to the CAD view of the project and a link to the completed plan set PDF.'
+      operationId: retrievePlanSet
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the plan set request was submitted for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: plan_set_request_id
+        in: path
+        description: The ID of the plan set request to retrieve the plan set for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Plan Set documents successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan_set:
+                    type: object
+                    properties:
+                      plan_set_request_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the plan set request within Aurora.
+                      design_cad_view_url:
+                        type: string
+                        description: A link to the CAD view of the design the plan set was created for.
+                        example: https://v2.aurorasolar.com/projects/60ac2924-78f5-4bbc-90a3-3cd1a2e90d54/designs/4406e8c7-5f3d-4037-8bc4-ea84aea8710c/cad
+                      plan_set_document_url:
+                        type: string
+                        description: A link to the plan set PDF.
+                        example: https://some-host.com/some-path/file.pdf
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Plan set was not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The plan_set_request with id 7db5dd13-9784-49e9-a279-f79e37e6edd3 could not be found
+                    - message: No plan_set was found for plan_set_request with id 7db5dd13-9784-49e9-a279-f79e37e6edd3
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

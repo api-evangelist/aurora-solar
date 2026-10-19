@@ -1,0 +1,510 @@
+openapi: 3.2.0
+info:
+  title: Sync CAD Screenshot API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: CAD Screenshot
+paths:
+  /tenants/{tenant_id}/designs/{design_id}/cad_screenshot/run:
+    post:
+      tags:
+      - CAD Screenshot
+      summary: Run CAD Screenshot
+      description: 'Generate a CAD screenshot of a design on demand, without a user having to open the design and click the manual screenshot button.
+
+
+        ---
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.
+
+
+        The design must have a completed Irradiance Analysis (panels mode) before a screenshot can be generated; the endpoint returns a 422 otherwise.
+
+
+        Once the job succeeds, the resulting image is delivered as a "CAD API Screenshot" asset, retrievable via the List Design Assets / Retrieve Design Asset endpoints, and an `asset_created` webhook fires for it — there is no separate download endpoint. Unlike the "CAD Auto Screenshot" produced when a design is saved, a CAD API Screenshot never replaces a prior screenshot of any kind; up to 10 can accumulate per design, after which the endpoint returns a 422.'
+      operationId: runCadScreenshot
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to which the design belongs.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design to screenshot.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cad_screenshot_job:
+                  type: object
+                  description: 'CAD screenshot fields to run the job with. The request body may be omitted entirely to use the default camera and layers.
+
+                    '
+                  properties:
+                    camera_settings:
+                      type: object
+                      description: 'Optional camera overrides for this screenshot only. `preset` and `radius` cannot both be given in the same request.
+
+                        '
+                      properties:
+                        preset:
+                          type: string
+                          enum:
+                          - top_down
+                          description: A named camera preset. `top_down` renders a straight-down camera view.
+                        radius:
+                          type: number
+                          minimum: 1
+                          maximum: 150
+                          description: The camera's distance from the design, in meters, keeping its saved tilt/rotation/look-at. Not combinable with `preset`.
+                      example:
+                        preset: top_down
+                    image_layers:
+                      type: object
+                      description: 'Optional CAD data layer visibility for this screenshot only. Set a layer to `true` to show it or `false` to hide it; a layer not mentioned at all falls back to this API''s own standard default (noted per property below) rather than the design''s saved layer state -- this keeps results stable for fully automated callers who screenshot a design before anyone has reviewed or edited it.
+
+                        '
+                      properties:
+                        azimuths:
+                          type: boolean
+                          description: The azimuth arrows layer. Default -- on.
+                        buildings:
+                          type: boolean
+                          description: The buildings layer. Default -- on.
+                        droneMesh:
+                          type: boolean
+                          description: The drone mesh layer. Default -- off.
+                        map:
+                          type: boolean
+                          description: Satellite map imagery, along with the ground plane and sky backdrop it's rendered against -- all three are controlled together by this one flag. Default -- on.
+                        measurements:
+                          type: boolean
+                          description: The measurements layer. Default -- on.
+                        modules:
+                          type: boolean
+                          description: The solar panel modules layer. Default -- on.
+                        parcel:
+                          type: boolean
+                          description: The parcel boundary layer. Default -- off.
+                        lidar:
+                          type: boolean
+                          description: The LIDAR layer. Default -- off.
+                        irradiance:
+                          type: boolean
+                          description: The irradiance map layer. Default -- off.
+                        rulers:
+                          type: boolean
+                          description: The rulers layer. Default -- off.
+                        setbacks:
+                          type: boolean
+                          description: The setbacks layer. Default -- on.
+                        sunpath:
+                          type: boolean
+                          description: The sun path layer. Default -- off.
+                        trees:
+                          type: boolean
+                          description: The trees layer. Default -- on.
+                      example:
+                        buildings: false
+            example:
+              cad_screenshot_job:
+                camera_settings:
+                  preset: top_down
+                image_layers:
+                  buildings: false
+      responses:
+        '202':
+          description: CAD screenshot job accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cad_screenshot_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        description: Unique ID identifying the CAD screenshot job.
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design that the job was run for.
+                      requested_at:
+                        type: string
+                        description: The timestamp of when the job was initiated, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2023-07-11 18:43:18 UTC
+                      completed_at:
+                        type: string
+                        description: The timestamp of when the job was completed, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2023-07-11 18:43:18 UTC
+                      status:
+                        type: string
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        description: Status of the job.
+                        example: succeeded
+                      source:
+                        type: string
+                        enum:
+                        - api
+                        description: Source of the job. Always "api", since this endpoint is only triggered via API.
+                        example: api
+                      asset_ids:
+                        type: array
+                        items:
+                          type: string
+                          format: uuid
+                        description: The IDs of the resulting "CAD API Screenshot" design asset(s). Only populated for succeeded jobs.
+                      error:
+                        type: object
+                        description: Detailed errors. Only populated for failed jobs.
+                        properties:
+                          message:
+                            type: string
+                            description: Error message.
+                        example: null
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Design API is not provisioned for this tenant. To provision, please contact your Aurora Account Executive or Customer Success Manager.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/designs/{design_id}/cad_screenshot/status:
+    get:
+      tags:
+      - CAD Screenshot
+      summary: Retrieve CAD Screenshot Status
+      description: 'Retrieve the status of a CAD screenshot job.
+
+
+        ---
+
+
+        Note that this is an asynchronous endpoint. See the Asynchronous Endpoints appendix for more info.
+
+
+        You will need the job_id from the response body of a POST to the Run CAD Screenshot endpoint, or from the parameters of an `asset_created` webhook call.
+
+
+        Once the job succeeds, the response includes `asset_ids`, an array of the resulting "CAD API Screenshot" asset(s) (one today; a future job may produce more, e.g. multiple angles requested in one call), retrievable via the List Design Assets / Retrieve Design Asset endpoints.'
+      operationId: retrieveCadScreenshotStatus
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to which the design belongs.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: design_id
+        in: path
+        description: The ID of the design for which to retrieve the CAD screenshot job.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: job_id
+        in: query
+        description: The ID of the CAD screenshot job.
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CAD screenshot job status successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cad_screenshot_job:
+                    type: object
+                    properties:
+                      job_id:
+                        type: string
+                        description: Unique ID identifying the CAD screenshot job.
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design that the job was run for.
+                      requested_at:
+                        type: string
+                        description: The timestamp of when the job was initiated, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2023-07-11 18:43:18 UTC
+                      completed_at:
+                        type: string
+                        description: The timestamp of when the job was completed, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                        example: 2023-07-11 18:43:18 UTC
+                      status:
+                        type: string
+                        enum:
+                        - in-progress
+                        - succeeded
+                        - failed
+                        description: Status of the job.
+                        example: succeeded
+                      source:
+                        type: string
+                        enum:
+                        - api
+                        description: Source of the job. Always "api", since this endpoint is only triggered via API.
+                        example: api
+                      asset_ids:
+                        type: array
+                        items:
+                          type: string
+                          format: uuid
+                        description: The IDs of the resulting "CAD API Screenshot" design asset(s). Only populated for succeeded jobs.
+                      error:
+                        type: object
+                        description: Detailed errors. Only populated for failed jobs.
+                        properties:
+                          message:
+                            type: string
+                            description: Error message.
+                        example: null
+              example:
+                cad_screenshot_job:
+                  job_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  design_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  requested_at: 2021-06-09 18:35:03 UTC
+                  completed_at: 2021-06-09 18:35:03 UTC
+                  status: succeeded
+                  source: api
+                  asset_ids:
+                  - 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Design API is not provisioned for this tenant. To provision, please contact your Aurora Account Executive or Customer Success Manager.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

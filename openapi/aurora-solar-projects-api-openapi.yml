@@ -1,53 +1,53 @@
 openapi: 3.2.0
 info:
-  title: Aurora Solar Projects API
-  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
-  version: v2024.05
+  title: Sync Projects API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
   contact:
-    name: Aurora Solar Developer Platform
-    url: https://docs.aurorasolar.com
-  license:
-    name: Proprietary
-    url: https://aurorasolar.com/terms-of-service/
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
 servers:
-- url: https://api.aurorasolar.com
-  description: Production
 - url: https://api-sandbox.aurorasolar.com
-  description: Sandbox
+  description: Sandbox Environment
 security:
 - bearerAuth: []
 tags:
 - name: Projects
-  description: Customer/site records that anchor designs and proposals.
 paths:
   /tenants/{tenant_id}/projects:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
     get:
-      operationId: listProjects
       tags:
       - Projects
-      summary: List projects
-      description: Lists projects for the tenant, sorted by created-at descending. Without `page`/`per_page` the first 100 projects are returned.
+      summary: List Projects
+      description: 'Returns a list of projects.
+
+
+        ---
+
+
+        Projects are returned sorted in descending order based on the created-at time. Without the page and per_page parameters, the first 100 projects will be returned. If per_page is specified, a maximum of 250 projects will be returned.'
+      operationId: listProjects
       parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get projects for.
+        required: true
+        schema:
+          type: string
+          format: uuid
       - name: page
         in: query
-        required: false
-        description: Page to return, 1-indexed (default 1).
+        description: Page to return, 1-indexed (default `1`)
         schema:
           type: integer
-          default: 1
       - name: per_page
         in: query
-        required: false
-        description: Items per page (default 100, max 250).
+        description: Number of items to return per page (default `100`, max `250`)
         schema:
           type: integer
-          default: 100
-          maximum: 250
       responses:
         '200':
-          description: A page of projects.
+          description: Projects successfully retrieved.
           content:
             application/json:
               schema:
@@ -56,230 +56,1738 @@ paths:
                   projects:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Project'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/RateLimited'
-    post:
-      operationId: createProject
-      tags:
-      - Projects
-      summary: Create a project
-      description: Creates a new project (customer/site) in the tenant.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProjectInput'
-      responses:
-        '201':
-          description: The created project.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Project'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-        '429':
-          $ref: '#/components/responses/RateLimited'
-  /tenants/{tenant_id}/projects/{project_id}:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - $ref: '#/components/parameters/ProjectId'
-    get:
-      operationId: retrieveProject
-      tags:
-      - Projects
-      summary: Retrieve a project
-      description: Retrieves a single project by ID.
-      responses:
-        '200':
-          description: The requested project.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Project'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      operationId: updateProject
-      tags:
-      - Projects
-      summary: Update a project
-      description: Updates fields on an existing project.
-      x-modeled: true
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ProjectInput'
-      responses:
-        '200':
-          description: The updated project.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Project'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/ValidationError'
-    delete:
-      operationId: deleteProject
-      tags:
-      - Projects
-      summary: Delete a project
-      description: Deletes a project.
-      x-modeled: true
-      responses:
-        '204':
-          description: The project was deleted.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-  /tenants/{tenant_id}/projects/{project_id}/ahj:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - $ref: '#/components/parameters/ProjectId'
-    get:
-      operationId: retrieveAhj
-      tags:
-      - Projects
-      summary: Retrieve AHJ
-      description: Retrieves the authority-having-jurisdiction details for a project.
-      x-modeled: true
-      responses:
-        '200':
-          description: AHJ details.
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project.
+                        name:
+                          type: string
+                          description: Name of the project.
+                          example: My first test project
+                        created_at:
+                          type: string
+                          description: The timestamp of when the project was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+                          example: 2023-07-11 18:43:18 UTC
+                        property_address:
+                          type: string
+                          description: Address of the site.
+                          example: 434 Brannan St, San Francisco, CA, 94107
+                        tags:
+                          type: array
+                          description: Tags associated with the project.
+                          items:
+                            type: string
+                          example:
+                          - third_party_1
+                          - region_a
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
                 type: object
-                additionalProperties: true
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+    post:
+      tags:
+      - Projects
+      summary: Create Project
+      description: 'Create a new project.
+
+
+        ---
+
+
+        A project within Aurora contains important customer information such as the address, latitude/longitude. Aurora allows you to specify your primary key of a customer/client within Aurora''s system under the field `external_provider_id`. This allows you to map your client/customer record to Aurora''s project.
+
+
+        The address and latitude/longitude coordinates on the Project are designed to be as consistent as possible. They represent the location of the project but not necessarily the specific building that should have the solar installation.
+
+
+        You must pass in an address or latitude/longitude coordinates. Here are the different combinations for passing in an address and latitude/longitude coordinates:
+
+
+        - If you only pass the address, we will calculate the latitude/longitude coordinates from that address.
+
+        This latitude/longitude may or may not represent the actual building that should have the solar installation.
+
+
+        - If you only pass latitude/longitude coordinates that fall within the property line, we will calculate the address from these coordinates. We set the customer address to this calculated address.
+
+
+        - If you pass both the address and the latitude/longitude coordinates of the building that should have the solar installation, we will set them as passed in.'
+      operationId: createProject
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to create the project in.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: object
+                  description: Project to create.
+                  allOf:
+                  - type: object
+                    properties:
+                      external_provider_id:
+                        type: string
+                        maxLength: 255
+                        description: Unique ID of customer provided by external provider.
+                        example: YourId123
+                      name:
+                        type: string
+                        maxLength: 255
+                        description: Name of the project.
+                        example: My first test project
+                      customer_salutation:
+                        type: string
+                        maxLength: 255
+                        description: Salutation of the homeowner.
+                        example: Mrs.
+                      customer_first_name:
+                        type: string
+                        maxLength: 255
+                        description: First name of the homeowner.
+                        example: Jane
+                      customer_last_name:
+                        type: string
+                        maxLength: 255
+                        description: Last name of the homeowner.
+                        example: Doe
+                      mailing_address:
+                        type: string
+                        maxLength: 255
+                        description: Mailing address of the homeowner.  It's not used to calculate latitude/longitude coordinates or property_address.
+                        example: 434 Brannan St, San Francisco, CA, USA
+                      customer_email:
+                        type: string
+                        maxLength: 255
+                        description: Email of the homeowner.
+                        example: jane@example.com
+                      customer_phone:
+                        type: string
+                        maxLength: 255
+                        description: Phone number of the homeowner.
+                        example: (555) 111-5151
+                      owner_id:
+                        type: string
+                        format: uuid
+                        description: ID of the user who owns the project.
+                      team_id:
+                        type: string
+                        format: uuid
+                        description: ID of team associated with project. The owner of the project must be a member of this team. If the owner belongs to only one team, the project will be associated with that team on project creation if `team_id` is not provided.
+                      status:
+                        type: string
+                        description: The status of the project.
+                        example: Remote Assessment Completed
+                      preferred_solar_modules:
+                        type: array
+                        description: List of solar module unique IDs. When set, this list overrides the tenant's starred/partner-scoped module list in AutoDesigner (Sales Mode and Design Mode) — the listed modules are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so a module must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated module ID is rejected.
+                        items:
+                          type: string
+                          format: uuid
+                          example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                      preferred_solar_inverters:
+                        type: array
+                        description: List of solar inverter unique IDs. When set, this list overrides the tenant's starred/partner-scoped inverter list in AutoDesigner (Sales Mode and Design Mode), and overrides the tenant/partner's default Sales Mode inverter selection per inverter type (string vs. micro) — the listed inverters are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so an inverter must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated inverter ID is rejected.
+                        items:
+                          type: string
+                          format: uuid
+                          example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                      tags:
+                        type: array
+                        description: Tags associated with the project.
+                        items:
+                          type: string
+                        example:
+                        - third_party_1
+                        - region_a
+                  - type: object
+                    properties:
+                      location:
+                        type: object
+                        anyOf:
+                        - properties:
+                            property_address:
+                              type: string
+                              maxLength: 255
+                              description: Full address of the project in the following format ('123 Main Street, Unit 12, City, CA, 93120'). Either address or a lat/long pair must be provided. If only address is provided, Aurora will set lat/long. If only lat/long are provided, Aurora will reverse GEO code the address. If neither are provided the request is rejected. If both are provided both are set.
+                              example: 434 Brannan St, San Francisco, CA, 94107
+                        - properties:
+                            latitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: 37.77960043
+                            longitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: -122.39530086
+                      project_type:
+                        type: string
+                        enum:
+                        - residential
+                        - commercial
+                        description: Type of the project. Defaults to `"residential"`.
+                      partner_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the partner associated with the project. The owner of the project must be part of the partner. If the owner belongs to only one partner, the project will be associated with that partner on project creation if `partner_id` is not provided.
+                      check_for_duplicates:
+                        type: boolean
+                        description: If true, Aurora will check for duplicate projects based on the project address and/or latitude/longitude pair. If a duplicate is found, the request will be rejected with a 422 error. Defaults to `false`. This check follows the tenant settings for the scope of the check - it may be constrained to the partner or team level. If the check is disabled in the app, it will still be applied for API requests if the flag is set.
+                    required:
+                    - location
+      responses:
+        '200':
+          description: Project successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    allOf:
+                    - type: object
+                      properties:
+                        external_provider_id:
+                          type: string
+                          maxLength: 255
+                          description: Unique ID of customer provided by external provider.
+                          example: YourId123
+                        name:
+                          type: string
+                          maxLength: 255
+                          description: Name of the project.
+                          example: My first test project
+                        customer_salutation:
+                          type: string
+                          maxLength: 255
+                          description: Salutation of the homeowner.
+                          example: Mrs.
+                        customer_first_name:
+                          type: string
+                          maxLength: 255
+                          description: First name of the homeowner.
+                          example: Jane
+                        customer_last_name:
+                          type: string
+                          maxLength: 255
+                          description: Last name of the homeowner.
+                          example: Doe
+                        mailing_address:
+                          type: string
+                          maxLength: 255
+                          description: Mailing address of the homeowner.  It's not used to calculate latitude/longitude coordinates or property_address.
+                          example: 434 Brannan St, San Francisco, CA, USA
+                        customer_email:
+                          type: string
+                          maxLength: 255
+                          description: Email of the homeowner.
+                          example: jane@example.com
+                        customer_phone:
+                          type: string
+                          maxLength: 255
+                          description: Phone number of the homeowner.
+                          example: (555) 111-5151
+                        owner_id:
+                          type: string
+                          format: uuid
+                          description: ID of the user who owns the project.
+                        team_id:
+                          type: string
+                          format: uuid
+                          description: ID of team associated with project. The owner of the project must be a member of this team. If the owner belongs to only one team, the project will be associated with that team on project creation if `team_id` is not provided.
+                        status:
+                          type: string
+                          description: The status of the project.
+                          example: Remote Assessment Completed
+                        preferred_solar_modules:
+                          type: array
+                          description: List of solar module unique IDs. When set, this list overrides the tenant's starred/partner-scoped module list in AutoDesigner (Sales Mode and Design Mode) — the listed modules are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so a module must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated module ID is rejected.
+                          items:
+                            type: string
+                            format: uuid
+                            example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                        preferred_solar_inverters:
+                          type: array
+                          description: List of solar inverter unique IDs. When set, this list overrides the tenant's starred/partner-scoped inverter list in AutoDesigner (Sales Mode and Design Mode), and overrides the tenant/partner's default Sales Mode inverter selection per inverter type (string vs. micro) — the listed inverters are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so an inverter must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated inverter ID is rejected.
+                          items:
+                            type: string
+                            format: uuid
+                            example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                        tags:
+                          type: array
+                          description: Tags associated with the project.
+                          items:
+                            type: string
+                          example:
+                          - third_party_1
+                          - region_a
+                    - type: object
+                      properties:
+                        location:
+                          type: object
+                          properties:
+                            property_address:
+                              type: string
+                              maxLength: 255
+                              description: Full address of the project in the following format ('123 Main Street, Unit 12, City, CA 93120, USA'). Either address or a lat/long pair must be provided. If only address is provided, Aurora will set lat/long. If only lat/long are provided, Aurora will reverse GEO code the address. If neither are provided the request is rejected. If both are provided both are set.
+                              example: 434 Brannan St, San Francisco, CA 94107, USA
+                            latitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: 37.77960043
+                            longitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: -122.39530086
+                            property_address_components:
+                              type: object
+                              properties:
+                                street_address:
+                                  type: string
+                                  description: Number and street of the project.
+                                  example: 434 Brannan St
+                                city:
+                                  type: string
+                                  description: City of the project.
+                                  example: San Francisco
+                                region:
+                                  type: string
+                                  description: Region, state, or province of the project.
+                                  example: CA
+                                postal_code:
+                                  type: string
+                                  description: Postal code of the project.
+                                  example: '94107'
+                                country:
+                                  type: string
+                                  description: Country of the project.
+                                  example: United States
+                        project_type:
+                          type: string
+                          enum:
+                          - residential
+                          - commercial
+                          description: Type of the project. Defaults to `"residential"`.
+                        partner_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the project. The owner of the project must be part of the partner. If the owner belongs to only one partner, the project will be associated with that partner on project creation if `partner_id` is not provided.
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project.
+                        created_from_lead_id:
+                          type: string
+                          format: uuid
+                          description: ID of the lead from which the project was generated (if applicable).
+                        ahj_id:
+                          type: string
+                          format: uuid
+                          description: ID of the Authority Having Jurisdiction (AHJ) that contains the project’s property address according to the US Census TIGER/Line Legal Boundary Shapefiles. Note that AHJ assignment happens asynchronously so the ID may still be `null` immediately after project creation. You can subscribe to the `ahj_lookup_completed` webhook event to be notified when the asynchronous AHJ assignment is complete.
+                        order_id:
+                          type:
+                          - string
+                          - 'null'
+                          description: ID of the order from which the project was generated (if applicable), formatted as an ObjectID
+                        created_at:
+                          type: string
+                          example: 2023-07-11 18:43:18 UTC
+                          description: The timestamp of when the project was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/projects/{id}:
+    get:
+      tags:
+      - Projects
+      summary: Retrieve Project
+      description: Retrieve a project by ID.
+      operationId: retrieveProject
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the project to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Project successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    allOf:
+                    - type: object
+                      properties:
+                        external_provider_id:
+                          type: string
+                          maxLength: 255
+                          description: Unique ID of customer provided by external provider.
+                          example: YourId123
+                        name:
+                          type: string
+                          maxLength: 255
+                          description: Name of the project.
+                          example: My first test project
+                        customer_salutation:
+                          type: string
+                          maxLength: 255
+                          description: Salutation of the homeowner.
+                          example: Mrs.
+                        customer_first_name:
+                          type: string
+                          maxLength: 255
+                          description: First name of the homeowner.
+                          example: Jane
+                        customer_last_name:
+                          type: string
+                          maxLength: 255
+                          description: Last name of the homeowner.
+                          example: Doe
+                        mailing_address:
+                          type: string
+                          maxLength: 255
+                          description: Mailing address of the homeowner.  It's not used to calculate latitude/longitude coordinates or property_address.
+                          example: 434 Brannan St, San Francisco, CA, USA
+                        customer_email:
+                          type: string
+                          maxLength: 255
+                          description: Email of the homeowner.
+                          example: jane@example.com
+                        customer_phone:
+                          type: string
+                          maxLength: 255
+                          description: Phone number of the homeowner.
+                          example: (555) 111-5151
+                        owner_id:
+                          type: string
+                          format: uuid
+                          description: ID of the user who owns the project.
+                        team_id:
+                          type: string
+                          format: uuid
+                          description: ID of team associated with project. The owner of the project must be a member of this team. If the owner belongs to only one team, the project will be associated with that team on project creation if `team_id` is not provided.
+                        status:
+                          type: string
+                          description: The status of the project.
+                          example: Remote Assessment Completed
+                        preferred_solar_modules:
+                          type: array
+                          description: List of solar module unique IDs. When set, this list overrides the tenant's starred/partner-scoped module list in AutoDesigner (Sales Mode and Design Mode) — the listed modules are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so a module must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated module ID is rejected.
+                          items:
+                            type: string
+                            format: uuid
+                            example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                        preferred_solar_inverters:
+                          type: array
+                          description: List of solar inverter unique IDs. When set, this list overrides the tenant's starred/partner-scoped inverter list in AutoDesigner (Sales Mode and Design Mode), and overrides the tenant/partner's default Sales Mode inverter selection per inverter type (string vs. micro) — the listed inverters are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so an inverter must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated inverter ID is rejected.
+                          items:
+                            type: string
+                            format: uuid
+                            example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                        tags:
+                          type: array
+                          description: Tags associated with the project.
+                          items:
+                            type: string
+                          example:
+                          - third_party_1
+                          - region_a
+                    - type: object
+                      properties:
+                        location:
+                          type: object
+                          properties:
+                            property_address:
+                              type: string
+                              maxLength: 255
+                              description: Full address of the project in the following format ('123 Main Street, Unit 12, City, CA 93120, USA'). Either address or a lat/long pair must be provided. If only address is provided, Aurora will set lat/long. If only lat/long are provided, Aurora will reverse GEO code the address. If neither are provided the request is rejected. If both are provided both are set.
+                              example: 434 Brannan St, San Francisco, CA 94107, USA
+                            latitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: 37.77960043
+                            longitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: -122.39530086
+                            property_address_components:
+                              type: object
+                              properties:
+                                street_address:
+                                  type: string
+                                  description: Number and street of the project.
+                                  example: 434 Brannan St
+                                city:
+                                  type: string
+                                  description: City of the project.
+                                  example: San Francisco
+                                region:
+                                  type: string
+                                  description: Region, state, or province of the project.
+                                  example: CA
+                                postal_code:
+                                  type: string
+                                  description: Postal code of the project.
+                                  example: '94107'
+                                country:
+                                  type: string
+                                  description: Country of the project.
+                                  example: United States
+                        project_type:
+                          type: string
+                          enum:
+                          - residential
+                          - commercial
+                          description: Type of the project. Defaults to `"residential"`.
+                        partner_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the project. The owner of the project must be part of the partner. If the owner belongs to only one partner, the project will be associated with that partner on project creation if `partner_id` is not provided.
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project.
+                        created_from_lead_id:
+                          type: string
+                          format: uuid
+                          description: ID of the lead from which the project was generated (if applicable).
+                        ahj_id:
+                          type: string
+                          format: uuid
+                          description: ID of the Authority Having Jurisdiction (AHJ) that contains the project’s property address according to the US Census TIGER/Line Legal Boundary Shapefiles. Note that AHJ assignment happens asynchronously so the ID may still be `null` immediately after project creation. You can subscribe to the `ahj_lookup_completed` webhook event to be notified when the asynchronous AHJ assignment is complete.
+                        order_id:
+                          type:
+                          - string
+                          - 'null'
+                          description: ID of the order from which the project was generated (if applicable), formatted as an ObjectID
+                        created_at:
+                          type: string
+                          example: 2023-07-11 18:43:18 UTC
+                          description: The timestamp of when the project was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Projects
+      summary: Update Project
+      description: Update an existing project.
+      operationId: updateProject
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the project to update.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: object
+                  description: Project fields to update.
+                  allOf:
+                  - type: object
+                    properties:
+                      external_provider_id:
+                        type: string
+                        maxLength: 255
+                        description: Unique ID of customer provided by external provider.
+                        example: YourId123
+                      name:
+                        type: string
+                        maxLength: 255
+                        description: Name of the project.
+                        example: My first test project
+                      customer_salutation:
+                        type: string
+                        maxLength: 255
+                        description: Salutation of the homeowner.
+                        example: Mrs.
+                      customer_first_name:
+                        type: string
+                        maxLength: 255
+                        description: First name of the homeowner.
+                        example: Jane
+                      customer_last_name:
+                        type: string
+                        maxLength: 255
+                        description: Last name of the homeowner.
+                        example: Doe
+                      mailing_address:
+                        type: string
+                        maxLength: 255
+                        description: Mailing address of the homeowner.  It's not used to calculate latitude/longitude coordinates or property_address.
+                        example: 434 Brannan St, San Francisco, CA, USA
+                      customer_email:
+                        type: string
+                        maxLength: 255
+                        description: Email of the homeowner.
+                        example: jane@example.com
+                      customer_phone:
+                        type: string
+                        maxLength: 255
+                        description: Phone number of the homeowner.
+                        example: (555) 111-5151
+                      owner_id:
+                        type: string
+                        format: uuid
+                        description: ID of the user who owns the project.
+                      team_id:
+                        type: string
+                        format: uuid
+                        description: ID of team associated with project. The owner of the project must be a member of this team. If the owner belongs to only one team, the project will be associated with that team on project creation if `team_id` is not provided.
+                      status:
+                        type: string
+                        description: The status of the project.
+                        example: Remote Assessment Completed
+                      preferred_solar_modules:
+                        type: array
+                        description: List of solar module unique IDs. When set, this list overrides the tenant's starred/partner-scoped module list in AutoDesigner (Sales Mode and Design Mode) — the listed modules are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so a module must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated module ID is rejected.
+                        items:
+                          type: string
+                          format: uuid
+                          example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                      preferred_solar_inverters:
+                        type: array
+                        description: List of solar inverter unique IDs. When set, this list overrides the tenant's starred/partner-scoped inverter list in AutoDesigner (Sales Mode and Design Mode), and overrides the tenant/partner's default Sales Mode inverter selection per inverter type (string vs. micro) — the listed inverters are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so an inverter must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated inverter ID is rejected.
+                        items:
+                          type: string
+                          format: uuid
+                          example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                      tags:
+                        type: array
+                        description: Tags associated with the project.
+                        items:
+                          type: string
+                        example:
+                        - third_party_1
+                        - region_a
+      responses:
+        '200':
+          description: Project successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    allOf:
+                    - type: object
+                      properties:
+                        external_provider_id:
+                          type: string
+                          maxLength: 255
+                          description: Unique ID of customer provided by external provider.
+                          example: YourId123
+                        name:
+                          type: string
+                          maxLength: 255
+                          description: Name of the project.
+                          example: My first test project
+                        customer_salutation:
+                          type: string
+                          maxLength: 255
+                          description: Salutation of the homeowner.
+                          example: Mrs.
+                        customer_first_name:
+                          type: string
+                          maxLength: 255
+                          description: First name of the homeowner.
+                          example: Jane
+                        customer_last_name:
+                          type: string
+                          maxLength: 255
+                          description: Last name of the homeowner.
+                          example: Doe
+                        mailing_address:
+                          type: string
+                          maxLength: 255
+                          description: Mailing address of the homeowner.  It's not used to calculate latitude/longitude coordinates or property_address.
+                          example: 434 Brannan St, San Francisco, CA, USA
+                        customer_email:
+                          type: string
+                          maxLength: 255
+                          description: Email of the homeowner.
+                          example: jane@example.com
+                        customer_phone:
+                          type: string
+                          maxLength: 255
+                          description: Phone number of the homeowner.
+                          example: (555) 111-5151
+                        owner_id:
+                          type: string
+                          format: uuid
+                          description: ID of the user who owns the project.
+                        team_id:
+                          type: string
+                          format: uuid
+                          description: ID of team associated with project. The owner of the project must be a member of this team. If the owner belongs to only one team, the project will be associated with that team on project creation if `team_id` is not provided.
+                        status:
+                          type: string
+                          description: The status of the project.
+                          example: Remote Assessment Completed
+                        preferred_solar_modules:
+                          type: array
+                          description: List of solar module unique IDs. When set, this list overrides the tenant's starred/partner-scoped module list in AutoDesigner (Sales Mode and Design Mode) — the listed modules are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so a module must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated module ID is rejected.
+                          items:
+                            type: string
+                            format: uuid
+                            example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                        preferred_solar_inverters:
+                          type: array
+                          description: List of solar inverter unique IDs. When set, this list overrides the tenant's starred/partner-scoped inverter list in AutoDesigner (Sales Mode and Design Mode), and overrides the tenant/partner's default Sales Mode inverter selection per inverter type (string vs. micro) — the listed inverters are always available regardless of starring or partner assignment. This is not an unconditional override, though, other restrictions still apply, so an inverter must be non-deprecated and available for the project's state to be selectable, and admin/unrestricted catalog searches bypass it entirely. Setting a deprecated inverter ID is rejected.
+                          items:
+                            type: string
+                            format: uuid
+                            example: c5565198-91b8-46f1-97e6-db1973b2b4a3
+                        tags:
+                          type: array
+                          description: Tags associated with the project.
+                          items:
+                            type: string
+                          example:
+                          - third_party_1
+                          - region_a
+                    - type: object
+                      properties:
+                        location:
+                          type: object
+                          properties:
+                            property_address:
+                              type: string
+                              maxLength: 255
+                              description: Full address of the project in the following format ('123 Main Street, Unit 12, City, CA 93120, USA'). Either address or a lat/long pair must be provided. If only address is provided, Aurora will set lat/long. If only lat/long are provided, Aurora will reverse GEO code the address. If neither are provided the request is rejected. If both are provided both are set.
+                              example: 434 Brannan St, San Francisco, CA 94107, USA
+                            latitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: 37.77960043
+                            longitude:
+                              type: number
+                              format: double
+                              description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. Reject if only one is set.
+                              example: -122.39530086
+                            property_address_components:
+                              type: object
+                              properties:
+                                street_address:
+                                  type: string
+                                  description: Number and street of the project.
+                                  example: 434 Brannan St
+                                city:
+                                  type: string
+                                  description: City of the project.
+                                  example: San Francisco
+                                region:
+                                  type: string
+                                  description: Region, state, or province of the project.
+                                  example: CA
+                                postal_code:
+                                  type: string
+                                  description: Postal code of the project.
+                                  example: '94107'
+                                country:
+                                  type: string
+                                  description: Country of the project.
+                                  example: United States
+                        project_type:
+                          type: string
+                          enum:
+                          - residential
+                          - commercial
+                          description: Type of the project. Defaults to `"residential"`.
+                        partner_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the partner associated with the project. The owner of the project must be part of the partner. If the owner belongs to only one partner, the project will be associated with that partner on project creation if `partner_id` is not provided.
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project.
+                        created_from_lead_id:
+                          type: string
+                          format: uuid
+                          description: ID of the lead from which the project was generated (if applicable).
+                        ahj_id:
+                          type: string
+                          format: uuid
+                          description: ID of the Authority Having Jurisdiction (AHJ) that contains the project’s property address according to the US Census TIGER/Line Legal Boundary Shapefiles. Note that AHJ assignment happens asynchronously so the ID may still be `null` immediately after project creation. You can subscribe to the `ahj_lookup_completed` webhook event to be notified when the asynchronous AHJ assignment is complete.
+                        order_id:
+                          type:
+                          - string
+                          - 'null'
+                          description: ID of the order from which the project was generated (if applicable), formatted as an ObjectID
+                        created_at:
+                          type: string
+                          example: 2023-07-11 18:43:18 UTC
+                          description: The timestamp of when the project was created, formatted as "YYYY-MM-DD HH:MM:SS UTC"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+    delete:
+      tags:
+      - Projects
+      summary: Delete Project
+      description: Delete an existing project.
+      operationId: deleteProject
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the project to delete.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: Project successfully deleted.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/projects/{project_id}/assets:
+    get:
+      tags:
+      - Projects
+      summary: List Project Assets
+      description: Returns a list of project assets.
+      operationId: listProjectAssets
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that owns the project.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        description: The ID of the project to list assets for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Project Assets successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_assets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the asset within Aurora.
+                        filename:
+                          type: string
+                          description: Base name of the file with extension.
+                          example: meter_image.jpg
+                        temporary_access_url:
+                          type: string
+                          description: Temporary URL to download the file (asset). Access expires after 24 hours. URL is refreshed on each request.
+                          example: http://some-host.com/some-path/file2.png
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    post:
+      tags:
+      - Projects
+      summary: Create Project Asset
+      description: 'Create a project asset by uploading an image or document.
+
+
+        ---
+
+
+        A project can have a number of associated images or documents such as a picture of a meter, a roof, or other supporting material. An associated file can be a pdf, jpg, jpeg, png, gif, or webp file. Any other file formats will be rejected. The maximum size of an individual file is 15 MB. You may upload up to 100 assets per project. New assets will overwrite old assets with the same filename.'
+      operationId: createProjectAsset
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that owns the project.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        description: The ID of the project to upload an asset to.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: header
+        description: 'Describes the uploaded content, including the filename of the asset. Must follow format: ''attachment; filename="<file_name>.<file_extension>"'''
+        name: Content-Disposition
+        required: true
+        schema:
+          type: string
+        example: attachment; filename="meter_image.jpg"
+      requestBody:
+        description: File to upload, in binary format.
+        content:
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+          image/gif:
+            schema:
+              type: string
+              format: binary
+          image/webp:
+            schema:
+              type: string
+              format: binary
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+        required: true
+      responses:
+        '200':
+          description: Project Asset successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_asset:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the asset within Aurora.
+                      filename:
+                        type: string
+                        description: Base name of the file with extension.
+                        example: meter_image.jpg
+                      temporary_access_url:
+                        type: string
+                        description: Temporary URL to download the file (asset). Access expires after 24 hours. URL is refreshed on each request.
+                        example: http://some-host.com/some-path/file2.png
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id, :project_id]'
+                    - message: 'Expected Content-Disposition header but it was missing or did not match format: ''attachment; filename="<file_name>.<file_extension>"'''
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: File extension .png does not match expected MIME type of image/jpeg
+                    - message: 'File format .heic is not supported. Accepted formats: [.jpg, .jpeg, .png, .gif, .webp, .pdf]'
+                    - message: File with size of 16.0 MB exceeds maximum allowed size of 15 MB.
+                    - message: File is empty.
+                    - message: Project already has 100 assets. You may not upload more than 100 assets per project.
+  /tenants/{tenant_id}/ahjs/{id}:
+    get:
+      tags:
+      - Projects
+      summary: Retrieve AHJ
+      description: 'Retrieve an Authority Having Jurisdiction (AHJ).
+
+
+        ---
+
+
+        AHJ information is determined through a project''s property address according to the Census TIGER/Line Legal Boundary Shapefiles.'
+      operationId: retrieveAHJ
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the AHJ is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the AHJ to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: AHJ successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ahj:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the AHJ within Aurora.
+                      name:
+                        type: string
+                        description: Name of the AHJ.
+                        example: Green township
+                      units_of_measurement:
+                        type: string
+                        description: Units used for areas, lengths, speeds, and loads throughout this AHJ object (including `structural_requirements.wind_speed` and `structural_requirements.snow_load`), as determined by the tenant setting for units.
+                        enum:
+                        - Imperial
+                        - Metric
+                      general_requirements:
+                        type: object
+                        description: General requirements for the AHJ.
+                        properties:
+                          wind_code:
+                            type: string
+                            description: Name of the applicable wind code.
+                            example: ASCE 7-16
+                      structural_requirements:
+                        type: object
+                        description: Structural requirements for the AHJ.
+                        properties:
+                          wind_speed:
+                            type: number
+                            format: double
+                            description: Wind speed that must be supported in miles per hour or kilometers per hour.
+                            example: 70
+                          snow_load:
+                            type: number
+                            format: double
+                            description: Weight of snow that must be supported in pounds per sq. foot or kilograms per sq. meter.
+                            example: 10
+                          max_span:
+                            type: number
+                            format: double
+                            description: Maximum distance between racking attachment points in meters or inches.
+                            example: 48
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
 components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    RateLimited:
-      description: Rate limit exceeded (default 90 requests/minute). Inspect the `Retry-After` response header for when to retry.
-      headers:
-        Retry-After:
-          description: Seconds to wait before retrying.
-          schema:
-            type: integer
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-    Project:
-      allOf:
-      - $ref: '#/components/schemas/ProjectInput'
-      - type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          tenant_id:
-            type: string
-            format: uuid
-          created_at:
-            type: string
-            format: date-time
-          updated_at:
-            type: string
-            format: date-time
-    ProjectInput:
-      type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
-        customer_first_name:
-          type: string
-        customer_last_name:
-          type: string
-        customer_email:
-          type: string
-          format: email
-        customer_phone:
-          type: string
-        status:
-          type: string
-        latitude:
-          type: number
-          format: double
-        longitude:
-          type: number
-          format: double
-        address:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-  parameters:
-    ProjectId:
-      name: project_id
-      in: path
-      required: true
-      description: The project ID.
-      schema:
-        type: string
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
+      bearerFormat: header

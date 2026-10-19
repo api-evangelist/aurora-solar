@@ -1,0 +1,598 @@
+openapi: 3.2.0
+info:
+  title: Sync Project Notes API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Project Notes
+paths:
+  /tenants/{tenant_id}/projects/{project_id}/project_note:
+    post:
+      tags:
+      - Project Notes
+      operationId: createProjectNote
+      summary: Create Project Note
+      description: Creates the project note for the given project when one does not already exist. See Project Notes.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_note:
+                  type: object
+                  properties:
+                    content:
+                      type: string
+                      description: Note body (required). May be an empty string. See [Note content format](ref:project-notes#note-content-format).
+                      example: Customer asked to follow up after site visit.
+                  required:
+                  - content
+              required:
+              - project_note
+      responses:
+        '201':
+          description: Project note successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_note:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: Unique ID of the note in Aurora.
+                      content:
+                        type:
+                        - string
+                        - 'null'
+                        description: Note body. See [Note content format](ref:project-notes#note-content-format).
+                    required:
+                    - id
+                required:
+                - project_note
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+    get:
+      tags:
+      - Project Notes
+      operationId: retrieveProjectNote
+      summary: Retrieve Project Note
+      description: Returns the project note for the given project. See Project Notes.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project whose note you are reading.
+      responses:
+        '200':
+          description: Project note successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_note:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: Unique ID of the note in Aurora.
+                      content:
+                        type:
+                        - string
+                        - 'null'
+                        description: Note body. See [Note content format](ref:project-notes#note-content-format).
+                    required:
+                    - id
+                required:
+                - project_note
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
+      tags:
+      - Project Notes
+      operationId: updateProjectNote
+      summary: Update Project Note
+      description: Updates the project note body for the given project. See Project Notes.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project_note:
+                  type: object
+                  properties:
+                    content:
+                      type: string
+                      description: Note body (required). May be an empty string. See [Note content format](ref:project-notes#note-content-format).
+                      example: Customer asked to follow up after site visit.
+                  required:
+                  - content
+              required:
+              - project_note
+      responses:
+        '200':
+          description: Project note successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_note:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        minLength: 1
+                        format: uuid
+                        description: Unique ID of the note in Aurora.
+                      content:
+                        type:
+                        - string
+                        - 'null'
+                        description: Note body. See [Note content format](ref:project-notes#note-content-format).
+                    required:
+                    - id
+                required:
+                - project_note
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+  /tenants/{tenant_id}/projects/{project_id}/project_note_files:
+    get:
+      tags:
+      - Project Notes
+      operationId: retrieveProjectNoteFiles
+      summary: Retrieve Project Note Files
+      description: Lists files attached to the project note with short-lived download URLs (each URL is valid for 86400 seconds from issuance). See Project Notes.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant.
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the project whose note files you are listing.
+      responses:
+        '200':
+          description: Project note files successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_note_files:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          minLength: 1
+                          format: uuid
+                          description: Unique ID of the file within Aurora.
+                        filename:
+                          type:
+                          - string
+                          - 'null'
+                          description: File name including extension.
+                        temporary_access_url:
+                          type:
+                          - string
+                          - 'null'
+                          description: Short-lived URL to download the file; each successful response returns a freshly signed URL. URLs expire 86400 seconds after issuance. Call this endpoint again to obtain a new URL.
+                      required:
+                      - id
+                required:
+                - project_note_files
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '503':
+          description: Download URLs could not be generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                          minLength: 1
+                          description: Human-readable error message.
+                      required:
+                      - message
+                required:
+                - errors
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

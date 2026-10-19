@@ -1,0 +1,408 @@
+openapi: 3.2.0
+info:
+  title: Sync Bill Summaries API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Bill Summaries
+paths:
+  /tenants/{tenant_id}/projects/{id}/bill_summary:
+    get:
+      tags:
+      - Bill Summaries
+      summary: Retrieve Project Bill Summary
+      description: Retrieve the estimated current bill summary for year 1 for the project.
+      operationId: retrieveProjectBillSummary
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the project is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the project to retrieve the bill summary for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Bill Summary successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_summary:
+                    type: object
+                    properties:
+                      year1_monthly_total_bill:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly total bill, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec. Total bill includes grid, fixed, demand charges as well as any applicable solar credits or net surplus compensation.
+                        example:
+                        - 100.12
+                        - 90.23
+                        - 100.34
+                        - 90.56
+                        - 100.78
+                        - 90.91
+                        - 100.1
+                        - 91.23
+                        - 100.45
+                        - 92.56
+                        - 100.78
+                        - 93.25
+                      year1_monthly_grid_use_charges:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly grid charges, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec. These will include any applicable solar NEM credits.
+                      year1_monthly_fixed_charges:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly fixed charges, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec. Fixed charges can be zero for utilities where solar credits can cover fixed charges.
+                      year1_monthly_net_grid_consumption:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly amounts of energy consumed by the household from the grid from Jan - Dec, in kWh. These values account for PV and storage output.
+                      year1_monthly_pv_consumption:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly amounts of PV-sourced energy consumed by the household from Jan - Dec, in kWh. Includes PV used directly and PV stored then discharged to the home. Does not include grid-sourced storage discharge.
+                      year1_monthly_cash_net_surplus_compensation:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly net surplus compensation amounts, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec.
+                      year1_feed_in_compensation:
+                        type: number
+                        description: The total annual monetary compensation, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), for all energy exported to the grid in the first post-solar year. This differs from `year1_cash_net_surplus_compensation` in that it includes all exported energy compensation, rather than the net energy balance over the course of a billing period.
+                      year1_monthly_total_pv_production:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly amounts of energy produced by the PV system from Jan - Dec, in kWh.
+                      year1_monthly_fit_revenues:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly revenue, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from the feed-in-tariff program, based on the total energy produced by the PV system, from Jan - Dec.
+                      year1_cost_per_consumed_kwh:
+                        type: array
+                        items:
+                          type: number
+                        description: A value in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per kWh, result of dividing total annual bill (sum of `year1_monthly_total_bill`) by total annual consumption from the grid (sum of `year1_monthly_net_grid_consumption`).
+                      utility_rate_name:
+                        type: string
+                        description: The name of the utility rate.
+                      utility_name:
+                        type: string
+                        description: The name of the utility.
+                      year1_cash_net_surplus_compensation:
+                        type: number
+                        description: The total annual monetary compensation, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), for surplus energy in the first post-solar year.
+                      year1_grid_use_kwh:
+                        type: number
+                        description: The total annual energy consumed from the grid for the first post-solar year.
+                      year1_grid_surplus_kwh:
+                        type: number
+                        description: The total annual surplus energy generated for the first post-solar year.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/designs/{id}/bill_summary:
+    get:
+      tags:
+      - Bill Summaries
+      summary: Retrieve Design Bill Summary
+      description: Retrieve the estimated bill summary for year 1 for the design, incorporating its energy optimization products, PV system and storage.
+      operationId: retrieveDesignBillSummary
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the design to retrieve the bill summary for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Bill Summary successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bill_summary:
+                    type: object
+                    properties:
+                      year1_monthly_total_bill:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly total bill, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec. Total bill includes grid, fixed, demand charges as well as any applicable solar credits or net surplus compensation.
+                        example:
+                        - 100.12
+                        - 90.23
+                        - 100.34
+                        - 90.56
+                        - 100.78
+                        - 90.91
+                        - 100.1
+                        - 91.23
+                        - 100.45
+                        - 92.56
+                        - 100.78
+                        - 93.25
+                      year1_monthly_grid_use_charges:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly grid charges, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec. These will include any applicable solar NEM credits.
+                      year1_monthly_fixed_charges:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly fixed charges, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec. Fixed charges can be zero for utilities where solar credits can cover fixed charges.
+                      year1_monthly_net_grid_consumption:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly amounts of energy consumed by the household from the grid from Jan - Dec, in kWh. These values account for PV and storage output.
+                      year1_monthly_pv_consumption:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly amounts of PV-sourced energy consumed by the household from Jan - Dec, in kWh. Includes PV used directly and PV stored then discharged to the home. Does not include grid-sourced storage discharge.
+                      year1_monthly_cash_net_surplus_compensation:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly net surplus compensation amounts, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from Jan - Dec.
+                      year1_feed_in_compensation:
+                        type: number
+                        description: The total annual monetary compensation, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), for all energy exported to the grid in the first post-solar year. This differs from `year1_cash_net_surplus_compensation` in that it includes all exported energy compensation, rather than the net energy balance over the course of a billing period.
+                      year1_monthly_total_pv_production:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly amounts of energy produced by the PV system from Jan - Dec, in kWh.
+                      year1_monthly_fit_revenues:
+                        type: array
+                        items:
+                          type: number
+                        description: Monthly revenue, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), from the feed-in-tariff program, based on the total energy produced by the PV system, from Jan - Dec.
+                      year1_cost_per_consumed_kwh:
+                        type: array
+                        items:
+                          type: number
+                        description: A value in the tenant's configured currency (see `currency` on `GET /tenants/{id}`) per kWh, result of dividing total annual bill (sum of `year1_monthly_total_bill`) by total annual consumption from the grid (sum of `year1_monthly_net_grid_consumption`).
+                      utility_rate_name:
+                        type: string
+                        description: The name of the utility rate.
+                      utility_name:
+                        type: string
+                        description: The name of the utility.
+                      year1_cash_net_surplus_compensation:
+                        type: number
+                        description: The total annual monetary compensation, denominated in the tenant's configured currency (see `currency` on `GET /tenants/{id}`), for surplus energy in the first post-solar year.
+                      year1_grid_use_kwh:
+                        type: number
+                        description: The total annual energy consumed from the grid for the first post-solar year.
+                      year1_grid_surplus_kwh:
+                        type: number
+                        description: The total annual surplus energy generated for the first post-solar year.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

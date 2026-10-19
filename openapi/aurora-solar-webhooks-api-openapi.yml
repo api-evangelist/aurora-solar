@@ -1,38 +1,360 @@
 openapi: 3.2.0
 info:
-  title: Aurora Solar Webhooks API
-  description: The Aurora API lets you build apps and integrations on the Aurora Solar platform for solar sales and design.
-  version: v2024.05
+  title: Sync Webhooks API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
   contact:
-    name: Aurora Solar Developer Platform
-    url: https://docs.aurorasolar.com
-  license:
-    name: Proprietary
-    url: https://aurorasolar.com/terms-of-service/
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
 servers:
-- url: https://api.aurorasolar.com
-  description: Production
 - url: https://api-sandbox.aurorasolar.com
-  description: Sandbox
+  description: Sandbox Environment
 security:
 - bearerAuth: []
 tags:
 - name: Webhooks
-  description: Event notification subscriptions.
 paths:
   /tenants/{tenant_id}/webhooks:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    get:
-      operationId: listWebhooks
+    post:
       tags:
       - Webhooks
-      summary: List webhooks
-      description: Lists the webhooks configured for the tenant.
-      x-modeled: true
+      operationId: createWebhook
+      summary: Create Webhook
+      description: Create a new webhook.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to create the webhook for.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                webhook:
+                  description: Webhook to create.
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      minLength: 1
+                      description: The Aurora event which triggers the webhook to fire.
+                      example: agreement_status_changed
+                      enum:
+                      - agreement_status_changed
+                      - ahj_lookup_completed
+                      - ai_roof_job_completed
+                      - app_status_changed
+                      - asset_created
+                      - auto_designer_job_completed
+                      - consumption_profile_changed
+                      - design_created
+                      - design_deleted
+                      - design_request_completed
+                      - design_request_created
+                      - design_request_rejected
+                      - eagleview_design_request_created
+                      - eagleview_design_request_status_changed
+                      - fire_pathway_placement_job_completed
+                      - imagery_lidar_completed
+                      - milestone_created
+                      - milestone_shared
+                      - order_created
+                      - panel_irradiance_analysis_job_completed
+                      - performance_simulation_job_completed
+                      - plan_set_request_status_changed
+                      - project_changed
+                      - project_created
+                      - project_deleted
+                      - project_status_changed
+                      - agreement_download_url_job_completed
+                      - utility_bill_upload_job_completed
+                      - proposal_pdf_generation_job_completed
+                      - site_survey_requested
+                      - site_survey_status_changed
+                      - web_proposal_url_created
+                      - web_proposal_viewed
+                      - financier_contract_status_changed
+                    url_template:
+                      type: string
+                      minLength: 1
+                      description: URL template that GET requests are sent to when the event occurs
+                      example: https://www.webhookclient.com/auto_designer_job_completed?design_id=<DESIGN_ID>&job_id=<JOB_ID>&status=<STATUS>
+                    description:
+                      type: string
+                      description: Description of the webhook's purpose.
+                      example: Aurora - AutoDesigner Webhook
+                    enabled:
+                      type: boolean
+                      description: Whether the GET request will be sent on the next event occurrence. Default true.
+                    header_auth_key:
+                      type: string
+                      description: Name of the HTTP header used for authentication to the url specified in url_template. Must be provided with header_auth_value or omitted; must not be provided with basic_auth_username or basic_auth_password.
+                    header_auth_value:
+                      type: string
+                      description: Value of the HTTP header used for authentication to the url specified in url_template. Must be provided with header_auth_key or omitted; must not be provided with basic_auth_username or basic_auth_password.
+                    basic_auth_username:
+                      type: string
+                      description: Username for authentication via basic auth to the url specified in url_template. Must be provided if basic_auth_password is provided; must not be provided with header_auth_key or header_auth_value.
+                    basic_auth_password:
+                      type: string
+                      description: Password for authentication via basic auth to the url specified in url_template. Must not be provided with header_auth_key or header_auth_value.
+                    filters:
+                      description: The [Filters](ref:webhooks#filters) applied to this webhook. If multiple filters are supplied, all must be satisfied for the webhook to be triggered.
+                      example:
+                      - url_parameter: <STATUS>
+                        values:
+                        - submitted
+                        - completed
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          url_parameter:
+                            type: string
+                            minLength: 1
+                            enum:
+                            - <STATUS>
+                            - <SOURCE>
+                            - <ASSET_TYPE>
+                            - <STAGE>
+                            - <CHANGE_TYPES>
+                            - <IS_FIRST_VIEW>
+                            description: The URL parameter used to filter the webhook, including the brackets.
+                            example: <STATUS>
+                          values:
+                            description: The list of values; if the URL parameter matches any value in the array, the webhook will be triggered.
+                            type: array
+                            items:
+                              minLength: 1
+                              type: string
+                        required:
+                        - url_parameter
+                        - values
+                  required:
+                  - event
+                  - url_template
+              required:
+              - webhook
       responses:
         '200':
-          description: A list of webhooks.
+          description: Webhook successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhook:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the webhook.
+                      description:
+                        type: string
+                        minLength: 1
+                        description: Description of the webhook's purpose.
+                        example: Aurora - AutoDesigner Webhook
+                      event:
+                        type: string
+                        enum:
+                        - agreement_status_changed
+                        - ahj_lookup_completed
+                        - ai_roof_job_completed
+                        - app_status_changed
+                        - asset_created
+                        - auto_designer_job_completed
+                        - consumption_profile_changed
+                        - design_created
+                        - design_deleted
+                        - design_request_completed
+                        - design_request_created
+                        - design_request_rejected
+                        - eagleview_design_request_created
+                        - eagleview_design_request_status_changed
+                        - fire_pathway_placement_job_completed
+                        - imagery_lidar_completed
+                        - milestone_created
+                        - milestone_shared
+                        - order_created
+                        - panel_irradiance_analysis_job_completed
+                        - performance_simulation_job_completed
+                        - plan_set_request_status_changed
+                        - project_changed
+                        - project_created
+                        - project_deleted
+                        - project_status_changed
+                        - agreement_download_url_job_completed
+                        - utility_bill_upload_job_completed
+                        - proposal_pdf_generation_job_completed
+                        - site_survey_requested
+                        - site_survey_status_changed
+                        - web_proposal_url_created
+                        - web_proposal_viewed
+                        - financier_contract_status_changed
+                        description: The Aurora event which triggers the webhook to fire.
+                        example: agreement_status_changed
+                      url_template:
+                        type: string
+                        minLength: 1
+                        description: URL template that GET requests are sent to when the event occurs.
+                        example: https://www.webhookclient.com/auto_designer_job_completed?design_id=<DESIGN_ID>&job_id=<JOB_ID>&status=<STATUS>
+                      enabled:
+                        type: boolean
+                        description: Whether the GET request will be sent on the next event occurrence.
+                      credentials_enabled:
+                        type: boolean
+                        description: Whether credentials are attatched to this webhook.
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp when the webhook was created in UTC
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp when the webhook was last updated in UTC
+                      filters:
+                        description: The [Filters](ref:webhooks#filters) applied to this webhook. If multiple filters are supplied, all must be satisfied for the webhook to be triggered.
+                        example:
+                        - url_parameter: <STATUS>
+                          values:
+                          - submitted
+                          - completed
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url_parameter:
+                              type: string
+                              minLength: 1
+                              enum:
+                              - <STATUS>
+                              - <SOURCE>
+                              - <ASSET_TYPE>
+                              - <STAGE>
+                              - <CHANGE_TYPES>
+                              - <IS_FIRST_VIEW>
+                              description: The URL parameter used to filter the webhook, including the brackets.
+                              example: <STATUS>
+                            values:
+                              description: The list of values; if the URL parameter matches any value in the array, the webhook will be triggered.
+                              type: array
+                              items:
+                                type: string
+                          required:
+                          - url_parameter
+                          - values
+                    required:
+                    - id
+                    - description
+                    - event
+                    - url_template
+                    - enabled
+                    - credentials_enabled
+                    - created_at
+                    - updated_at
+                    - filters
+                required:
+                - webhook
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
+    get:
+      tags:
+      - Webhooks
+      operationId: listWebhooks
+      summary: List Webhooks
+      description: 'Returns a list of webhooks
+
+
+        ---
+
+
+        Webhooks are returned sorted in descending order based on creation date.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to get webhooks for.
+      responses:
+        '200':
+          description: Webhooks successfully retrieved.
           content:
             application/json:
               schema:
@@ -41,169 +363,765 @@ paths:
                   webhooks:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Webhook'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    post:
-      operationId: createWebhook
-      tags:
-      - Webhooks
-      summary: Create a webhook
-      description: Creates a webhook subscription so Aurora POSTs event notifications to your endpoint (for example when an async design job completes).
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebhookInput'
-      responses:
-        '201':
-          description: The created webhook.
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the webhook.
+                        description:
+                          type: string
+                          minLength: 1
+                          description: Description of the webhook's purpose.
+                          example: Aurora - AutoDesigner Webhook
+                        event:
+                          type: string
+                          enum:
+                          - agreement_status_changed
+                          - ahj_lookup_completed
+                          - ai_roof_job_completed
+                          - app_status_changed
+                          - asset_created
+                          - auto_designer_job_completed
+                          - consumption_profile_changed
+                          - design_created
+                          - design_deleted
+                          - design_request_completed
+                          - design_request_created
+                          - design_request_rejected
+                          - eagleview_design_request_created
+                          - eagleview_design_request_status_changed
+                          - fire_pathway_placement_job_completed
+                          - imagery_lidar_completed
+                          - milestone_created
+                          - milestone_shared
+                          - order_created
+                          - panel_irradiance_analysis_job_completed
+                          - performance_simulation_job_completed
+                          - plan_set_request_status_changed
+                          - project_changed
+                          - project_created
+                          - project_deleted
+                          - project_status_changed
+                          - agreement_download_url_job_completed
+                          - utility_bill_upload_job_completed
+                          - proposal_pdf_generation_job_completed
+                          - site_survey_requested
+                          - site_survey_status_changed
+                          - web_proposal_url_created
+                          - web_proposal_viewed
+                          - financier_contract_status_changed
+                          description: The Aurora event which triggers the webhook to fire.
+                          example: agreement_status_changed
+                        url_template:
+                          type: string
+                          minLength: 1
+                          description: URL template that GET requests are sent to when the event occurs.
+                          example: https://www.webhookclient.com/auto_designer_job_completed?design_id=<DESIGN_ID>&job_id=<JOB_ID>&status=<STATUS>
+                        enabled:
+                          type: boolean
+                          description: Whether the GET request will be sent on the next event occurrence.
+                      required:
+                      - id
+                      - description
+                      - event
+                      - url_template
+                      - enabled
+                required:
+                - webhooks
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Webhook'
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
-        '422':
-          $ref: '#/components/responses/ValidationError'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
   /tenants/{tenant_id}/webhooks/{webhook_id}:
-    parameters:
-    - $ref: '#/components/parameters/TenantId'
-    - name: webhook_id
-      in: path
-      required: true
-      schema:
-        type: string
     get:
-      operationId: retrieveWebhook
       tags:
       - Webhooks
-      summary: Retrieve a webhook
-      description: Retrieves a webhook by ID.
-      x-modeled: true
+      operationId: showWebhook
+      summary: Retrieve Webhook
+      description: Retrieve a webhook by ID
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to get webhooks for.
+      - name: webhook_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the webhook to return details for.
       responses:
         '200':
-          description: The requested webhook.
+          description: Webhook successfully retrieved.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Webhook'
+                type: object
+                properties:
+                  webhook:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the webhook.
+                      description:
+                        type: string
+                        minLength: 1
+                        description: Description of the webhook's purpose.
+                        example: Aurora - AutoDesigner Webhook
+                      event:
+                        type: string
+                        enum:
+                        - agreement_status_changed
+                        - ahj_lookup_completed
+                        - ai_roof_job_completed
+                        - app_status_changed
+                        - asset_created
+                        - auto_designer_job_completed
+                        - consumption_profile_changed
+                        - design_created
+                        - design_deleted
+                        - design_request_completed
+                        - design_request_created
+                        - design_request_rejected
+                        - eagleview_design_request_created
+                        - eagleview_design_request_status_changed
+                        - fire_pathway_placement_job_completed
+                        - imagery_lidar_completed
+                        - milestone_created
+                        - milestone_shared
+                        - order_created
+                        - panel_irradiance_analysis_job_completed
+                        - performance_simulation_job_completed
+                        - plan_set_request_status_changed
+                        - project_changed
+                        - project_created
+                        - project_deleted
+                        - project_status_changed
+                        - agreement_download_url_job_completed
+                        - utility_bill_upload_job_completed
+                        - proposal_pdf_generation_job_completed
+                        - site_survey_requested
+                        - site_survey_status_changed
+                        - web_proposal_url_created
+                        - web_proposal_viewed
+                        - financier_contract_status_changed
+                        description: The Aurora event which triggers the webhook to fire.
+                        example: agreement_status_changed
+                      url_template:
+                        type: string
+                        minLength: 1
+                        description: URL template that GET requests are sent to when the event occurs.
+                        example: https://www.webhookclient.com/auto_designer_job_completed?design_id=<DESIGN_ID>&job_id=<JOB_ID>&status=<STATUS>
+                      enabled:
+                        type: boolean
+                        description: Whether the GET request will be sent on the next event occurrence.
+                      credentials_enabled:
+                        type: boolean
+                        description: Whether credentials are attatched to this webhook.
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp when the webhook was created in UTC
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp when the webhook was last updated in UTC
+                      filters:
+                        description: The [Filters](ref:webhooks#filters) applied to this webhook. If multiple filters are supplied, all must be satisfied for the webhook to be triggered.
+                        example:
+                        - url_parameter: <STATUS>
+                          values:
+                          - submitted
+                          - completed
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url_parameter:
+                              type: string
+                              minLength: 1
+                              enum:
+                              - <STATUS>
+                              - <SOURCE>
+                              - <ASSET_TYPE>
+                              - <STAGE>
+                              - <CHANGE_TYPES>
+                              - <IS_FIRST_VIEW>
+                              description: The URL parameter used to filter the webhook, including the brackets.
+                              example: <STATUS>
+                            values:
+                              description: The list of values; if the URL parameter matches any value in the array, the webhook will be triggered.
+                              type: array
+                              items:
+                                type: string
+                          required:
+                          - url_parameter
+                          - values
+                    required:
+                    - id
+                    - description
+                    - event
+                    - url_template
+                    - enabled
+                    - credentials_enabled
+                    - created_at
+                    - updated_at
+                    - filters
+                required:
+                - webhook
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      operationId: updateWebhook
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+    put:
       tags:
       - Webhooks
-      summary: Update a webhook
-      description: Updates a webhook subscription.
-      x-modeled: true
+      operationId: updateWebhook
+      summary: Update Webhook
+      description: Update properties of a single webhook.
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant for which to get a webhook.
+      - name: webhook_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the webhook to to be updated.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WebhookInput'
+              type: object
+              properties:
+                webhook:
+                  description: Webhook to update.
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                      description: The Aurora event which triggers the webhook to fire.
+                      example: agreement_status_changed
+                      enum:
+                      - agreement_status_changed
+                      - ahj_lookup_completed
+                      - ai_roof_job_completed
+                      - app_status_changed
+                      - asset_created
+                      - auto_designer_job_completed
+                      - consumption_profile_changed
+                      - design_created
+                      - design_deleted
+                      - design_request_completed
+                      - design_request_created
+                      - design_request_rejected
+                      - eagleview_design_request_created
+                      - eagleview_design_request_status_changed
+                      - fire_pathway_placement_job_completed
+                      - imagery_lidar_completed
+                      - milestone_created
+                      - milestone_shared
+                      - order_created
+                      - panel_irradiance_analysis_job_completed
+                      - performance_simulation_job_completed
+                      - plan_set_request_status_changed
+                      - project_changed
+                      - project_created
+                      - project_deleted
+                      - project_status_changed
+                      - agreement_download_url_job_completed
+                      - utility_bill_upload_job_completed
+                      - proposal_pdf_generation_job_completed
+                      - site_survey_requested
+                      - site_survey_status_changed
+                      - web_proposal_url_created
+                      - web_proposal_viewed
+                      - financier_contract_status_changed
+                    url_template:
+                      type: string
+                      description: URL template that GET requests are sent to when the event occurs
+                      example: https://www.webhookclient.com/auto_designer_job_completed?design_id=<DESIGN_ID>&job_id=<JOB_ID>&status=<STATUS>
+                    description:
+                      type: string
+                      description: Description of the webhook's purpose.
+                      example: Aurora - AutoDesigner Webhook
+                    enabled:
+                      type: boolean
+                      description: Whether the GET request will be sent on the next event occurrence. Default true.
+                    header_auth_key:
+                      type: string
+                      description: Name of the HTTP header used for authentication to the url specified in url_template. Must be provided with header_auth_value or omitted; must not be provided with basic_auth_username or basic_auth_password.
+                    header_auth_value:
+                      type: string
+                      description: Value of the HTTP header used for authentication to the url specified in url_template. Must be provided with header_auth_key or omitted; must not be provided with basic_auth_username or basic_auth_password.
+                    basic_auth_username:
+                      type: string
+                      description: Username for authentication via basic auth to the url specified in url_template. Must be provided if basic_auth_password is provided; must not be provided with header_auth_key or header_auth_value.
+                    basic_auth_password:
+                      type: string
+                      description: Password for authentication via basic auth to the url specified in url_template. Must not be provided with header_auth_key or header_auth_value.
+                    filters:
+                      description: The [Filters](ref:webhooks#filters) applied to this webhook. If multiple filters are supplied, all must be satisfied for the webhook to be triggered.
+                      example:
+                      - url_parameter: <STATUS>
+                        values:
+                        - submitted
+                        - completed
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          url_parameter:
+                            type: string
+                            minLength: 1
+                            enum:
+                            - <STATUS>
+                            - <SOURCE>
+                            - <ASSET_TYPE>
+                            - <STAGE>
+                            - <CHANGE_TYPES>
+                            - <IS_FIRST_VIEW>
+                            description: The URL parameter used to filter the webhook, including the brackets.
+                            example: <STATUS>
+                          values:
+                            description: The list of values; if the URL parameter matches any value in the array, the webhook will be triggered.
+                            type: array
+                            items:
+                              minLength: 1
+                              type: string
+                        required:
+                        - url_parameter
+                        - values
+              required:
+              - webhook
       responses:
         '200':
-          description: The updated webhook.
+          description: Webhook successfully updated.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Webhook'
+                type: object
+                properties:
+                  webhook:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the webhook.
+                      description:
+                        type: string
+                        minLength: 1
+                        description: Description of the webhook's purpose.
+                        example: Aurora - AutoDesigner Webhook
+                      event:
+                        type: string
+                        enum:
+                        - agreement_status_changed
+                        - ahj_lookup_completed
+                        - ai_roof_job_completed
+                        - app_status_changed
+                        - asset_created
+                        - auto_designer_job_completed
+                        - consumption_profile_changed
+                        - design_created
+                        - design_deleted
+                        - design_request_completed
+                        - design_request_created
+                        - design_request_rejected
+                        - eagleview_design_request_created
+                        - eagleview_design_request_status_changed
+                        - fire_pathway_placement_job_completed
+                        - imagery_lidar_completed
+                        - milestone_created
+                        - milestone_shared
+                        - order_created
+                        - panel_irradiance_analysis_job_completed
+                        - performance_simulation_job_completed
+                        - plan_set_request_status_changed
+                        - project_changed
+                        - project_created
+                        - project_deleted
+                        - project_status_changed
+                        - agreement_download_url_job_completed
+                        - utility_bill_upload_job_completed
+                        - proposal_pdf_generation_job_completed
+                        - site_survey_requested
+                        - site_survey_status_changed
+                        - web_proposal_url_created
+                        - web_proposal_viewed
+                        - financier_contract_status_changed
+                        description: The Aurora event which triggers the webhook to fire.
+                        example: agreement_status_changed
+                      url_template:
+                        type: string
+                        minLength: 1
+                        description: URL template that GET requests are sent to when the event occurs.
+                        example: https://www.webhookclient.com/auto_designer_job_completed?design_id=<DESIGN_ID>&job_id=<JOB_ID>&status=<STATUS>
+                      enabled:
+                        type: boolean
+                        description: Whether the GET request will be sent on the next event occurrence.
+                      credentials_enabled:
+                        type: boolean
+                        description: Whether credentials are attatched to this webhook.
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp when the webhook was created in UTC
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp when the webhook was last updated in UTC
+                      filters:
+                        description: The [Filters](ref:webhooks#filters) applied to this webhook. If multiple filters are supplied, all must be satisfied for the webhook to be triggered.
+                        example:
+                        - url_parameter: <STATUS>
+                          values:
+                          - submitted
+                          - completed
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url_parameter:
+                              type: string
+                              minLength: 1
+                              enum:
+                              - <STATUS>
+                              - <SOURCE>
+                              - <ASSET_TYPE>
+                              - <STAGE>
+                              - <CHANGE_TYPES>
+                              - <IS_FIRST_VIEW>
+                              description: The URL parameter used to filter the webhook, including the brackets.
+                              example: <STATUS>
+                            values:
+                              description: The list of values; if the URL parameter matches any value in the array, the webhook will be triggered.
+                              type: array
+                              items:
+                                type: string
+                          required:
+                          - url_parameter
+                          - values
+                    required:
+                    - id
+                    - description
+                    - event
+                    - url_template
+                    - enabled
+                    - credentials_enabled
+                    - created_at
+                    - updated_at
+                    - filters
+                required:
+                - webhook
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Something went wrong
+                  - message: Something else went wrong
+                  - message: It's not really your day, is it?
     delete:
-      operationId: deleteWebhook
       tags:
       - Webhooks
-      summary: Delete a webhook
-      description: Deletes a webhook subscription.
-      x-modeled: true
+      operationId: deleteWebhook
+      summary: Delete Webhook
+      description: Delete a Webhook by ID
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant to delete a webhook for.
+      - name: webhook_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the webhook to be deleted.
       responses:
         '204':
-          description: The webhook was deleted.
+          description: Webhook successfully deleted.
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
 components:
-  responses:
-    Unauthorized:
-      description: Missing or invalid bearer token.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    ValidationError:
-      description: The request payload failed validation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    NotFound:
-      description: The requested resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-  schemas:
-    Error:
-      type: object
-      properties:
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-              title:
-                type: string
-              detail:
-                type: string
-    WebhookInput:
-      type: object
-      required:
-      - url
-      - event_types
-      properties:
-        url:
-          type: string
-          format: uri
-        event_types:
-          type: array
-          description: Event types to subscribe to (for example design_request.completed).
-          items:
-            type: string
-        enabled:
-          type: boolean
-          default: true
-    Webhook:
-      allOf:
-      - $ref: '#/components/schemas/WebhookInput'
-      - type: object
-        properties:
-          id:
-            type: string
-            format: uuid
-          created_at:
-            type: string
-            format: date-time
-  parameters:
-    TenantId:
-      name: tenant_id
-      in: path
-      required: true
-      description: The tenant (organization) ID that owns the resource.
-      schema:
-        type: string
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      description: 'API-key bearer token. Standard keys are prefixed `sk_`, Restricted keys `rk_`; `sand_`/`prod_` denote sandbox vs production. Passed as `Authorization: Bearer <token>`.'
+      bearerFormat: header

@@ -1,0 +1,224 @@
+openapi: 3.2.0
+info:
+  title: Sync LIDAR Status API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: LIDAR Status
+paths:
+  /tenants/{tenant_id}/designs/{design_id}/lidar_status:
+    get:
+      tags:
+      - LIDAR Status
+      operationId: retrieveLidarStatus
+      summary: Retrieve LIDAR Status
+      description: 'Report whether the elevation (LIDAR/DSM) data selected for a design is out of date
+
+        relative to the imagery selected for that design, along with the capture date of
+
+        each and the imagery resolution.
+
+
+        ---
+
+
+        Use this before running AI Roof to predict output quality: a design whose elevation
+
+        data is out of date relative to its imagery is likely to produce a poorer roof model.
+
+
+        Note that "out of date" is a comparison *between the two sources*, not a judgement
+
+        about whether either is current in absolute terms. Two sources captured at the same
+
+        time agree with each other even if both are old, so read `capture_date` alongside it.'
+      parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the tenant that the design is part of.
+      - name: design_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: The ID of the design to report LIDAR status for.
+      responses:
+        '200':
+          description: The current LIDAR status for the design.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lidar_status:
+                    type: object
+                    properties:
+                      out_of_date:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            minLength: 1
+                            enum:
+                            - up_to_date
+                            - out_of_date
+                            - unavailable
+                            example: up_to_date
+                            description: 'Whether the elevation data is out of date relative to the imagery currently
+
+                              selected for this design. `up_to_date` and `out_of_date` are verdicts;
+
+                              `unavailable` means no verdict could be produced, and `reason` says why.
+
+                              '
+                          reason:
+                            type:
+                            - string
+                            - 'null'
+                            enum:
+                            - lidar_data_unavailable
+                            - computation_failed
+                            example: lidar_data_unavailable
+                            description: 'Why no verdict is available. Null unless `status` is `unavailable`.
+
+                              `lidar_data_unavailable`: the imagery or LIDAR for this design could not be
+
+                              identified or is not yet usable, so there is nothing to compare.
+
+                              `computation_failed`: the comparison could not be completed; retrying may succeed.
+
+                              '
+                        required:
+                        - status
+                        - reason
+                      imagery:
+                        type: object
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            example: '2025-04-11'
+                            description: Calendar date the imagery was captured, when reported by the provider.
+                          resolution:
+                            type:
+                            - number
+                            - 'null'
+                            example: 7.5
+                            description: Imagery resolution in centimetres per pixel, when reported by the provider.
+                            exclusiveMinimum: 0
+                        required:
+                        - capture_date
+                        - resolution
+                      lidar:
+                        type: object
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            example: '2023-08-02'
+                            description: 'Calendar date the elevation capture began, when available. For Aurora LIDAR
+
+                              flights spanning multiple days this is the start of the window; the end date
+
+                              is not returned. Resolution is not exposed for elevation data because the
+
+                              stored point spacing may have been downsampled.
+
+                              '
+                        required:
+                        - capture_date
+                    required:
+                    - out_of_date
+                    - imagery
+                    - lidar
+                required:
+                - lidar_status
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: 'Expected UUID but received non-UUID value for the following URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: Invalid bearer token
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                example:
+                  errors:
+                  - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header

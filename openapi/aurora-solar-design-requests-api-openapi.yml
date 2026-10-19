@@ -1,0 +1,1178 @@
+openapi: 3.2.0
+info:
+  title: Sync Design Requests API
+  description: This Aurora Integration API allows authorized clients and 3rd parties to easily read, update, and create resources/objects with specific parameters within Aurora. You can find out more about Aurora Solar here.
+  version: 2024.05.0
+  contact:
+    name: Aurora Solar Support
+    email: support@aurorasolar.com
+servers:
+- url: https://api-sandbox.aurorasolar.com
+  description: Sandbox Environment
+security:
+- bearerAuth: []
+tags:
+- name: Design Requests
+paths:
+  /tenants/{tenant_id}/design_requests:
+    get:
+      tags:
+      - Design Requests
+      summary: List Design Requests
+      description: 'Returns a list of design requests.
+
+
+        ---
+
+
+        Design requests are returned sorted in descending order based on creation date. Without the page and per_page parameters, the most recent 100 design requests will be returned. You can also filter by status.'
+      operationId: listDesignRequests
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to get design requests for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        description: Page to return, 1-indexed (default `1`)
+        schema:
+          type: integer
+      - name: per_page
+        in: query
+        description: Number of items to return per page (default `100`)
+        schema:
+          type: integer
+      - name: status[]
+        in: query
+        description: Filters based on the status of the design requests. Choose between [`submitted`, `designer_completed`, `designer_rejected`, `accepted`, `rejected`]
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - submitted
+            - designer_completed
+            - designer_rejected
+            - accepted
+            - rejected
+      responses:
+        '200':
+          description: Design Requests successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  design_requests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the design request.
+                        project_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the project that the design request belongs to.
+                        design_id:
+                          type: string
+                          format: uuid
+                          description: Unique ID identifying the design that the design request corresponds to. Only populated if the design request has been accepted.
+                        status:
+                          type: string
+                          enum:
+                          - submitted
+                          - designer_completed
+                          - designer_rejected
+                          - accepted
+                          - rejected
+                          description: The status of the design request
+                          example: accepted
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+    post:
+      tags:
+      - Design Requests
+      summary: Create Design Request
+      description: 'Create a new design request.
+
+
+        ---
+
+
+        Use the latitude/longitude attributes to set the project marker on top of the building you would like modeled. If latitude/longitude are not explicitly provided in this request, the latitude/longitude values of the project will be used. However, the project latitude/longitude may not represent the building that should have the solar installation.'
+      operationId: createDesignRequest
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant to create the design request for.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                design_request:
+                  type: object
+                  description: Design Request to create.
+                  required:
+                  - project_id
+                  properties:
+                    project_id:
+                      type: string
+                      format: uuid
+                      description: Unique ID identifying the project that the design request belongs to.
+                    latitude:
+                      type: number
+                      format: double
+                      description: Latitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. This determines the project marker and determines the building to be modeled. Rejected if only one (lat or long) is set.
+                      example: 37.77960043
+                    longitude:
+                      type: number
+                      format: double
+                      description: Longitude of the site. If not both latitude and longitude are set (or both are null), the address will be used to geocode. This determines the project marker and determines the building to be modeled. Rejected if only one (lat or long) is set.
+                      example: -122.39530086
+                    sla:
+                      type: integer
+                      description: ETA in minutes until request completion from submission time. Default is `180`. Set to `30` to expedite a request.
+                      example: 180
+                    auto_accept:
+                      type: boolean
+                      description: Whether or not it should be autoaccepted upon completion. Defaults to false.
+                      example: true
+                    roof_pitch:
+                      type: integer
+                      description: Angle of roof pitch in degrees, typically from 0 to 60. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                      example: 15
+                    number_of_stories:
+                      type: integer
+                      description: The height of the main structure of this request in stories. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                      example: 2
+      responses:
+        '200':
+          description: Design Request successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  design_request:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design request.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the project that the design request belongs to.
+                      status:
+                        type: string
+                        enum:
+                        - submitted
+                        - designer_completed
+                        - designer_rejected
+                        - accepted
+                        - rejected
+                        description: The status of the design request
+                        example: submitted
+                      latitude:
+                        type: number
+                        format: double
+                        description: Latitude of the building to be modeled.
+                        example: 40.71435282
+                      longitude:
+                        type: number
+                        format: double
+                        description: Longitude of the building to be modeled.
+                        example: -74.00597314
+                      address:
+                        type: string
+                        description: Address, denormalized from the project
+                        example: 123 Main Street, Unit 12, City, CA, 93120
+                      submitted_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request submission time in UTC.
+                      completed_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request completion time in UTC.
+                        example: null
+                      reviewed_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request review time in UTC.
+                        example: null
+                      designer_rejected_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request designer rejected time in UTC.
+                        example: null
+                      image_src:
+                        type: string
+                        enum:
+                        - Google
+                        - Bing
+                        - Google HD (Sunroof)
+                        - Nearmap
+                        - Nearmap (True Ortho)
+                        - Vexcel
+                        - Custom
+                        description: Image source used by the designer when creating the 3D Model. When more than one active image exists, this is the first active source. Unlike Design `image_src`, this field does not use None, Multiple, or In Progress.
+                      lidar_src:
+                        type: string
+                        enum:
+                        - Google Sunroof
+                        - Aurora Lidar
+                        - Vexcel Lidar
+                        - Unknown
+                        description: Lidar source used by the designer when creating the 3D Model. When more than one active Lidar source exists, this is the first active source. Unlike Design `lidar_src`, this field does not use None or In Progress and may still return a source name while capture is incomplete.
+                      image_metadata:
+                        type: object
+                        required:
+                        - capture_date
+                        - resolution
+                        description: Metadata for the imagery used by the designer. Populated only when there is exactly one completed, recognized active image. `image_src` can still name a source when metadata is null, for example when multiple images are active or the image is still downloading. Availability varies by provider and record age. Nearmap, Vexcel, EagleView, and Google HD (Sunroof) imagery often include capture date and may include resolution; Google and Bing generally provide neither.
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Calendar date on which the imagery was captured, when provided by the imagery provider.
+                            example: '2024-03-19'
+                          resolution:
+                            type:
+                            - number
+                            - 'null'
+                            format: float
+                            description: Ground sampling resolution in centimeters per pixel, when provided by the imagery provider.
+                            example: 5.5
+                            exclusiveMinimum: 0
+                      lidar_metadata:
+                        type: object
+                        required:
+                        - capture_date
+                        description: Metadata for the Lidar source used by the designer. Populated only when there is exactly one completed, recognized active Lidar source. `lidar_src` can still name a source when metadata is null, for example when multiple sources are active or a point cloud has not finished processing. Availability varies by provider and record age. Resolution is not exposed for Lidar because the stored data may have been downsampled.
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Calendar date on which Lidar capture began, when available. For Aurora Lidar flights spanning multiple days, this is the start of the capture window; the end date is not returned.
+                            example: '2024-03-19'
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design that the design request corresponds to. Only populated if the design request has been accepted.
+                        example: null
+                      sla:
+                        type: integer
+                        description: ETA in minutes until request completion from submission time.
+                        example: 180
+                      designer_rejection_reason:
+                        type: array
+                        description: Reasons why the designer rejected the request. Only populated if the design request has been rejected.
+                        items:
+                          type: string
+                        example: null
+                      auto_accept:
+                        type: boolean
+                        description: Whether or not it should be autoaccepted upon completion. Defaults to false.
+                        example: true
+                      auto_accepted:
+                        type: boolean
+                        description: Whether or not it has been autoaccepted. Starts as false, then moves to true upon autoaccept.
+                        example: false
+                      roof_pitch:
+                        type: integer
+                        description: Angle of roof pitch in degrees, typically from 0 to 60. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                        example: 15
+                      number_of_stories:
+                        type: integer
+                        description: The height of the main structure of this request in stories. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                        example: 2
+                      vendor_used_lidar:
+                        type: boolean
+                        description: Deprecated, please use `designer_used_lidar` instead.
+                        example: null
+                        deprecated: true
+                      vendor_used_default_pitch:
+                        type: boolean
+                        description: Deprecated, please use `designer_used_default_pitch` instead.
+                        example: null
+                        deprecated: true
+                      designer_used_lidar:
+                        type: boolean
+                        description: Whether or not the designer used lidar when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+                      designer_used_default_pitch:
+                        type: boolean
+                        description: Whether or not the designer used the default roof pitch when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+                      designer_used_drone_data:
+                        type: boolean
+                        description: Whether or not the designer used drone data when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+  /tenants/{tenant_id}/design_requests/{id}:
+    get:
+      tags:
+      - Design Requests
+      summary: Retrieve Design Request
+      description: Retrieve a design request by ID.
+      operationId: retrieveDesignRequest
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the design request is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the design request to retrieve.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Design Request successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  design_request:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design request.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the project that the design request belongs to.
+                      status:
+                        type: string
+                        enum:
+                        - submitted
+                        - designer_completed
+                        - designer_rejected
+                        - accepted
+                        - rejected
+                        description: The status of the design request
+                        example: submitted
+                      latitude:
+                        type: number
+                        format: double
+                        description: Latitude of the building to be modeled.
+                        example: 40.71435282
+                      longitude:
+                        type: number
+                        format: double
+                        description: Longitude of the building to be modeled.
+                        example: -74.00597314
+                      address:
+                        type: string
+                        description: Address, denormalized from the project
+                        example: 123 Main Street, Unit 12, City, CA, 93120
+                      submitted_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request submission time in UTC.
+                      completed_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request completion time in UTC.
+                        example: null
+                      reviewed_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request review time in UTC.
+                        example: null
+                      designer_rejected_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request designer rejected time in UTC.
+                        example: null
+                      image_src:
+                        type: string
+                        enum:
+                        - Google
+                        - Bing
+                        - Google HD (Sunroof)
+                        - Nearmap
+                        - Nearmap (True Ortho)
+                        - Vexcel
+                        - Custom
+                        description: Image source used by the designer when creating the 3D Model. When more than one active image exists, this is the first active source. Unlike Design `image_src`, this field does not use None, Multiple, or In Progress.
+                      lidar_src:
+                        type: string
+                        enum:
+                        - Google Sunroof
+                        - Aurora Lidar
+                        - Vexcel Lidar
+                        - Unknown
+                        description: Lidar source used by the designer when creating the 3D Model. When more than one active Lidar source exists, this is the first active source. Unlike Design `lidar_src`, this field does not use None or In Progress and may still return a source name while capture is incomplete.
+                      image_metadata:
+                        type: object
+                        required:
+                        - capture_date
+                        - resolution
+                        description: Metadata for the imagery used by the designer. Populated only when there is exactly one completed, recognized active image. `image_src` can still name a source when metadata is null, for example when multiple images are active or the image is still downloading. Availability varies by provider and record age. Nearmap, Vexcel, EagleView, and Google HD (Sunroof) imagery often include capture date and may include resolution; Google and Bing generally provide neither.
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Calendar date on which the imagery was captured, when provided by the imagery provider.
+                            example: '2024-03-19'
+                          resolution:
+                            type:
+                            - number
+                            - 'null'
+                            format: float
+                            description: Ground sampling resolution in centimeters per pixel, when provided by the imagery provider.
+                            example: 5.5
+                            exclusiveMinimum: 0
+                      lidar_metadata:
+                        type: object
+                        required:
+                        - capture_date
+                        description: Metadata for the Lidar source used by the designer. Populated only when there is exactly one completed, recognized active Lidar source. `lidar_src` can still name a source when metadata is null, for example when multiple sources are active or a point cloud has not finished processing. Availability varies by provider and record age. Resolution is not exposed for Lidar because the stored data may have been downsampled.
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Calendar date on which Lidar capture began, when available. For Aurora Lidar flights spanning multiple days, this is the start of the capture window; the end date is not returned.
+                            example: '2024-03-19'
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design that the design request corresponds to. Only populated if the design request has been accepted.
+                        example: null
+                      sla:
+                        type: integer
+                        description: ETA in minutes until request completion from submission time.
+                        example: 180
+                      designer_rejection_reason:
+                        type: array
+                        description: Reasons why the designer rejected the request. Only populated if the design request has been rejected.
+                        items:
+                          type: string
+                        example: null
+                      auto_accept:
+                        type: boolean
+                        description: Whether or not it should be autoaccepted upon completion. Defaults to false.
+                        example: true
+                      auto_accepted:
+                        type: boolean
+                        description: Whether or not it has been autoaccepted. Starts as false, then moves to true upon autoaccept.
+                        example: false
+                      roof_pitch:
+                        type: integer
+                        description: Angle of roof pitch in degrees, typically from 0 to 60. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                        example: 15
+                      number_of_stories:
+                        type: integer
+                        description: The height of the main structure of this request in stories. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                        example: 2
+                      vendor_used_lidar:
+                        type: boolean
+                        description: Deprecated, please use `designer_used_lidar` instead.
+                        example: null
+                        deprecated: true
+                      vendor_used_default_pitch:
+                        type: boolean
+                        description: Deprecated, please use `designer_used_default_pitch` instead.
+                        example: null
+                        deprecated: true
+                      designer_used_lidar:
+                        type: boolean
+                        description: Whether or not the designer used lidar when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+                      designer_used_default_pitch:
+                        type: boolean
+                        description: Whether or not the designer used the default roof pitch when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+                      designer_used_drone_data:
+                        type: boolean
+                        description: Whether or not the designer used drone data when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+              example:
+                design_request:
+                  id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  project_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  status: rejected
+                  latitude: 40.71435282
+                  longitude: -74.00597314
+                  address: 123 Main Street, Unit 12, City, CA, 93120
+                  submitted_at: '2021-06-09T13:39:31.641Z'
+                  completed_at: '2021-06-09T13:39:31.641Z'
+                  reviewed_at: '2021-06-09T13:39:31.641Z'
+                  designer_rejected_at: '2021-06-09T13:39:31.641Z'
+                  image_src: Nearmap
+                  lidar_src: Google Sunroof
+                  image_metadata:
+                    capture_date: '2024-03-18'
+                    resolution: 5.5
+                  lidar_metadata:
+                    capture_date: '2024-03-19'
+                  design_id: null
+                  sla: 180
+                  designer_rejection_reason:
+                  - incorrect_pin
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+  /tenants/{tenant_id}/design_requests/{id}/accept:
+    post:
+      tags:
+      - Design Requests
+      summary: Accept Design Request
+      description: 'Accept a design request.
+
+
+        ---
+
+
+        This action accepts the design request, which:
+
+
+        - Advances the status of the design request to the final state `accepted`.
+
+
+        - Generates a new design within the project that this design request references and store the generated 3D model of the site.
+
+
+        - Adds the newly generated design''s ID to this design request.'
+      operationId: acceptDesignRequest
+      parameters:
+      - name: tenant_id
+        in: path
+        description: The ID of the tenant that the user is part of.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: id
+        in: path
+        description: The ID of the design request to accept.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Design Request successfully accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  design_request:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design request.
+                      project_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the project that the design request belongs to.
+                      status:
+                        type: string
+                        enum:
+                        - submitted
+                        - designer_completed
+                        - designer_rejected
+                        - accepted
+                        - rejected
+                        description: The status of the design request
+                        example: submitted
+                      latitude:
+                        type: number
+                        format: double
+                        description: Latitude of the building to be modeled.
+                        example: 40.71435282
+                      longitude:
+                        type: number
+                        format: double
+                        description: Longitude of the building to be modeled.
+                        example: -74.00597314
+                      address:
+                        type: string
+                        description: Address, denormalized from the project
+                        example: 123 Main Street, Unit 12, City, CA, 93120
+                      submitted_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request submission time in UTC.
+                      completed_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request completion time in UTC.
+                        example: null
+                      reviewed_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request review time in UTC.
+                        example: null
+                      designer_rejected_at:
+                        type: string
+                        format: date-time
+                        description: Timestamp of design request designer rejected time in UTC.
+                        example: null
+                      image_src:
+                        type: string
+                        enum:
+                        - Google
+                        - Bing
+                        - Google HD (Sunroof)
+                        - Nearmap
+                        - Nearmap (True Ortho)
+                        - Vexcel
+                        - Custom
+                        description: Image source used by the designer when creating the 3D Model. When more than one active image exists, this is the first active source. Unlike Design `image_src`, this field does not use None, Multiple, or In Progress.
+                      lidar_src:
+                        type: string
+                        enum:
+                        - Google Sunroof
+                        - Aurora Lidar
+                        - Vexcel Lidar
+                        - Unknown
+                        description: Lidar source used by the designer when creating the 3D Model. When more than one active Lidar source exists, this is the first active source. Unlike Design `lidar_src`, this field does not use None or In Progress and may still return a source name while capture is incomplete.
+                      image_metadata:
+                        type: object
+                        required:
+                        - capture_date
+                        - resolution
+                        description: Metadata for the imagery used by the designer. Populated only when there is exactly one completed, recognized active image. `image_src` can still name a source when metadata is null, for example when multiple images are active or the image is still downloading. Availability varies by provider and record age. Nearmap, Vexcel, EagleView, and Google HD (Sunroof) imagery often include capture date and may include resolution; Google and Bing generally provide neither.
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Calendar date on which the imagery was captured, when provided by the imagery provider.
+                            example: '2024-03-19'
+                          resolution:
+                            type:
+                            - number
+                            - 'null'
+                            format: float
+                            description: Ground sampling resolution in centimeters per pixel, when provided by the imagery provider.
+                            example: 5.5
+                            exclusiveMinimum: 0
+                      lidar_metadata:
+                        type: object
+                        required:
+                        - capture_date
+                        description: Metadata for the Lidar source used by the designer. Populated only when there is exactly one completed, recognized active Lidar source. `lidar_src` can still name a source when metadata is null, for example when multiple sources are active or a point cloud has not finished processing. Availability varies by provider and record age. Resolution is not exposed for Lidar because the stored data may have been downsampled.
+                        properties:
+                          capture_date:
+                            type:
+                            - string
+                            - 'null'
+                            format: date
+                            description: Calendar date on which Lidar capture began, when available. For Aurora Lidar flights spanning multiple days, this is the start of the capture window; the end date is not returned.
+                            example: '2024-03-19'
+                      design_id:
+                        type: string
+                        format: uuid
+                        description: Unique ID identifying the design that the design request corresponds to. Only populated if the design request has been accepted.
+                        example: null
+                      sla:
+                        type: integer
+                        description: ETA in minutes until request completion from submission time.
+                        example: 180
+                      designer_rejection_reason:
+                        type: array
+                        description: Reasons why the designer rejected the request. Only populated if the design request has been rejected.
+                        items:
+                          type: string
+                        example: null
+                      auto_accept:
+                        type: boolean
+                        description: Whether or not it should be autoaccepted upon completion. Defaults to false.
+                        example: true
+                      auto_accepted:
+                        type: boolean
+                        description: Whether or not it has been autoaccepted. Starts as false, then moves to true upon autoaccept.
+                        example: false
+                      roof_pitch:
+                        type: integer
+                        description: Angle of roof pitch in degrees, typically from 0 to 60. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                        example: 15
+                      number_of_stories:
+                        type: integer
+                        description: The height of the main structure of this request in stories. Defaults to null. This field is not used by our Expert Design Service in all tenants. For availability, please contact your Aurora account team.
+                        example: 2
+                      vendor_used_lidar:
+                        type: boolean
+                        description: Deprecated, please use `designer_used_lidar` instead.
+                        example: null
+                        deprecated: true
+                      vendor_used_default_pitch:
+                        type: boolean
+                        description: Deprecated, please use `designer_used_default_pitch` instead.
+                        example: null
+                        deprecated: true
+                      designer_used_lidar:
+                        type: boolean
+                        description: Whether or not the designer used lidar when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+                      designer_used_default_pitch:
+                        type: boolean
+                        description: Whether or not the designer used the default roof pitch when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+                      designer_used_drone_data:
+                        type: boolean
+                        description: Whether or not the designer used drone data when constructing this roof model. Defaults to null. Possible values are [true, false, null]. For availability, please contact your Aurora account team.
+                        example: null
+              example:
+                design_request:
+                  id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  project_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  status: accepted
+                  latitude: 40.71435282
+                  longitude: -74.00597314
+                  address: 123 Main Street, Unit 12, City, CA, 93120
+                  submitted_at: '2021-06-09T13:39:31.641Z'
+                  completed_at: '2021-06-09T13:39:31.641Z'
+                  reviewed_at: '2021-06-09T13:39:31.641Z'
+                  designer_rejected_at: '2021-06-09T13:39:31.641Z'
+                  image_src: Nearmap
+                  lidar_src: Google Sunroof
+                  image_metadata:
+                    capture_date: '2024-03-18'
+                    resolution: 5.5
+                  lidar_metadata:
+                    capture_date: '2024-03-19'
+                  design_id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                  sla: 180
+                  designer_rejection_reason: null
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: 'Expected UUID but received non-UUID value for the follow URL parameters: [:tenant_id]'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Invalid bearer token.
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: This endpoint is not provisioned for this key. To provision, please contact your Aurora account team.
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: The project with id 84634864-3324-34af-fa00-1548796facbd could not be found
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Please try again later. There is an existing request being processed for design 98345f64-5717-4562-b3fc-2c963f66fb6a
+        '422':
+          description: Unprocessable Entity
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                - type: object
+                  properties:
+                    errors:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                  required:
+                  - errors
+                - example:
+                    errors:
+                    - message: Something went wrong
+                    - message: Something else went wrong
+                    - message: It's really not your day, is it?
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: header
