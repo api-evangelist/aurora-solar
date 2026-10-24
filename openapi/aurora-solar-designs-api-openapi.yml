@@ -4969,3 +4969,9 @@ x-provenance:
   source: https://docs.aurorasolar.com/openapi/aurora_sync_api_spec_oas.yaml
   note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
     stamped by stamp-openapi-provenance.py (roadmap#793)
+x-provenance:
+  method: harvested
+  publisher: Aurora Solar
+  source: https://docs.aurorasolar.com/openapi/aurora_sync_api_spec_oas.yaml
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)

@@ -401,6 +401,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - Order
+  tags_raw:
   - Orders
   properties:
   - type: OpenAPI
@@ -533,6 +535,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - ProjectNotes
+  tags_raw:
   - Project Notes
   properties:
   - type: OpenAPI
@@ -599,6 +603,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - Team
+  tags_raw:
   - Teams
   properties:
   - type: OpenAPI
@@ -643,6 +649,8 @@ apis:
   humanURL: https://docs.aurorasolar.com/reference/listprojects
   baseURL: https://api.aurorasolar.com
   tags:
+  - User
+  tags_raw:
   - Users
   properties:
   - type: OpenAPI
